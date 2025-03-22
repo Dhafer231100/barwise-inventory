@@ -73,8 +73,8 @@ function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem active={isActive("/dashboard")}>
-                <SidebarMenuButton asChild>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
                   <a href="/dashboard">
                     <LayoutDashboard className="h-5 w-5" />
                     <span>Dashboard</span>
@@ -82,8 +82,8 @@ function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={isActive("/inventory")}>
-                <SidebarMenuButton asChild>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/inventory")}>
                   <a href="/inventory">
                     <Package2 className="h-5 w-5" />
                     <span>Inventory</span>
@@ -91,8 +91,8 @@ function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={isActive("/bar-management")}>
-                <SidebarMenuButton asChild>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/bar-management")}>
                   <a href="/bar-management">
                     <GlassWater className="h-5 w-5" />
                     <span>Bar Management</span>
@@ -100,8 +100,8 @@ function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem active={isActive("/reports")}>
-                <SidebarMenuButton asChild>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/reports")}>
                   <a href="/reports">
                     <BarChartHorizontal className="h-5 w-5" />
                     <span>Reports</span>
@@ -117,8 +117,8 @@ function AppSidebar() {
             <SidebarGroupLabel>Management</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem active={isActive("/users")}>
-                  <SidebarMenuButton asChild>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/users")}>
                     <a href="/users">
                       <Users className="h-5 w-5" />
                       <span>Staff</span>
@@ -134,7 +134,7 @@ function AppSidebar() {
       <SidebarFooter className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={isActive("/settings")}>
               <a href="/settings">
                 <Settings className="h-5 w-5" />
                 <span>Settings</span>
