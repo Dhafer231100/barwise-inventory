@@ -3,246 +3,30 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { InventoryItem } from "@/utils/types";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  AlertCircle,
-  ArrowUpDown,
-  ChevronDown,
-  Eye,
-  Filter,
-  Package2,
-  Plus,
-  Search,
-  Trash,
-  Edit,
-  MoveHorizontal,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-
-// Mock inventory data
-const mockInventoryItems: InventoryItem[] = [
-  {
-    id: "1",
-    name: "Absolut Vodka",
-    category: "Spirits",
-    quantity: 24,
-    unit: "bottle",
-    unitPrice: 18.99,
-    barId: "1",
-    supplierId: "1",
-    expirationDate: "2024-12-31",
-    minimumLevel: 10,
-  },
-  {
-    id: "2",
-    name: "Bombay Sapphire Gin",
-    category: "Spirits",
-    quantity: 18,
-    unit: "bottle",
-    unitPrice: 22.50,
-    barId: "1",
-    supplierId: "1",
-    expirationDate: "2024-12-31",
-    minimumLevel: 8,
-  },
-  {
-    id: "3",
-    name: "Captain Morgan Rum",
-    category: "Spirits",
-    quantity: 12,
-    unit: "bottle",
-    unitPrice: 16.75,
-    barId: "1",
-    supplierId: "2",
-    expirationDate: "2024-12-31",
-    minimumLevel: 10,
-  },
-  {
-    id: "4",
-    name: "Jose Cuervo Tequila",
-    category: "Spirits",
-    quantity: 9,
-    unit: "bottle",
-    unitPrice: 19.99,
-    barId: "1",
-    supplierId: "2",
-    expirationDate: "2024-12-31",
-    minimumLevel: 10,
-  },
-  {
-    id: "5",
-    name: "Jack Daniel's Whiskey",
-    category: "Spirits",
-    quantity: 15,
-    unit: "bottle",
-    unitPrice: 24.99,
-    barId: "2",
-    supplierId: "1",
-    expirationDate: "2024-12-31",
-    minimumLevel: 8,
-  },
-  {
-    id: "6",
-    name: "Chardonnay Wine",
-    category: "Wine",
-    quantity: 7,
-    unit: "bottle",
-    unitPrice: 12.99,
-    barId: "2",
-    supplierId: "3",
-    expirationDate: "2024-06-30",
-    minimumLevel: 10,
-  },
-  {
-    id: "7",
-    name: "Fresh Lime Juice",
-    category: "Mixers",
-    quantity: 5,
-    unit: "bottle",
-    unitPrice: 3.99,
-    barId: "3",
-    supplierId: "4",
-    expirationDate: "2023-06-15",
-    minimumLevel: 8,
-  },
-  {
-    id: "8",
-    name: "Simple Syrup",
-    category: "Mixers",
-    quantity: 8,
-    unit: "bottle",
-    unitPrice: 2.99,
-    barId: "3",
-    supplierId: "4",
-    expirationDate: "2023-09-30",
-    minimumLevel: 5,
-  },
-  {
-    id: "9",
-    name: "Cocktail Olives",
-    category: "Garnish",
-    quantity: 12,
-    unit: "jar",
-    unitPrice: 4.50,
-    barId: "1",
-    supplierId: "3",
-    expirationDate: "2023-12-31",
-    minimumLevel: 6,
-  },
-  {
-    id: "10",
-    name: "Cocktail Cherries",
-    category: "Garnish",
-    quantity: 14,
-    unit: "jar",
-    unitPrice: 5.25,
-    barId: "2",
-    supplierId: "3",
-    expirationDate: "2023-12-31",
-    minimumLevel: 6,
-  },
-];
-
-const barNames: Record<string, string> = {
-  "1": "Main Bar",
-  "2": "Pool Bar",
-  "3": "Lounge Bar",
-};
-
-type SortField = "name" | "quantity" | "unitPrice";
-type SortDirection = "asc" | "desc";
+import { InventoryTable } from "@/components/inventory/InventoryTable";
+import { InventoryFilters } from "@/components/inventory/InventoryFilters";
+import { Card } from "@/components/ui/card";
+import { DeleteItemDialog } from "@/components/inventory/DeleteItemDialog";
+import { mockInventoryItems } from "@/data/mockInventoryData";
 
 const Inventory = () => {
   const { isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
   const [items, setItems] = useState<InventoryItem[]>(mockInventoryItems);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedBar, setSelectedBar] = useState<string>("all");
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
   }
-
-  // Sorting function
-  const sortItems = (a: InventoryItem, b: InventoryItem) => {
-    let valueA: string | number;
-    let valueB: string | number;
-
-    switch (sortField) {
-      case "name":
-        valueA = a.name.toLowerCase();
-        valueB = b.name.toLowerCase();
-        break;
-      case "quantity":
-        valueA = a.quantity;
-        valueB = b.quantity;
-        break;
-      case "unitPrice":
-        valueA = a.unitPrice;
-        valueB = b.unitPrice;
-        break;
-      default:
-        valueA = a.name.toLowerCase();
-        valueB = b.name.toLowerCase();
-    }
-
-    if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
-    if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  };
-
-  // Handler for sorting
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // Toggle direction if same field
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // Set new field and default to ascending
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
 
   // Filter items based on search, category, and bar
   const filteredItems = items
@@ -255,36 +39,47 @@ const Inventory = () => {
       const matchesBar = selectedBar === "all" || item.barId === selectedBar;
       return matchesSearch && matchesCategory && matchesBar;
     })
-    .sort(sortItems);
+    .sort((a, b) => {
+      let valueA: string | number;
+      let valueB: string | number;
+
+      switch (sortField) {
+        case "name":
+          valueA = a.name.toLowerCase();
+          valueB = b.name.toLowerCase();
+          break;
+        case "quantity":
+          valueA = a.quantity;
+          valueB = b.quantity;
+          break;
+        case "unitPrice":
+          valueA = a.unitPrice;
+          valueB = b.unitPrice;
+          break;
+        default:
+          valueA = a.name.toLowerCase();
+          valueB = b.name.toLowerCase();
+      }
+
+      if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
 
   // Get unique categories for filter
   const categories = Array.from(new Set(items.map((item) => item.category)));
 
-  const isLowStock = (item: InventoryItem) => item.quantity < item.minimumLevel;
-  
-  const isExpiringSoon = (item: InventoryItem) => {
-    if (!item.expirationDate) return false;
-    const expirationDate = new Date(item.expirationDate);
-    const now = new Date();
-    const threeMonthsFromNow = new Date();
-    threeMonthsFromNow.setMonth(now.getMonth() + 3);
-    return expirationDate < threeMonthsFromNow;
-  };
-
   // Action handlers
   const handleViewDetails = (item: InventoryItem) => {
     setSelectedItem(item);
-    // In a real app, you would navigate to a detail page or open a modal
     toast.info(`Viewing details for ${item.name}`);
   };
 
   const handleEditItem = (item: InventoryItem) => {
-    // In a real app, you would navigate to an edit page or open a modal
     toast.info(`Editing ${item.name}`);
   };
 
   const handleTransferItem = (item: InventoryItem) => {
-    // In a real app, you would open a transfer modal
     toast.info(`Transfer ${item.name} between bars`);
   };
 
@@ -305,7 +100,17 @@ const Inventory = () => {
 
   const handleAddItem = () => {
     toast.info("Opening add item form");
-    // In a real app, you would navigate to an add item page or open a modal
+  };
+
+  const handleSort = (field: "name" | "quantity" | "unitPrice") => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection("asc");
+    }
   };
 
   return (
@@ -324,209 +129,35 @@ const Inventory = () => {
         </div>
 
         <Card className="p-4">
-          <div className="flex flex-col md:flex-row gap-4 md:items-center mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search inventory..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <SelectValue placeholder="Category" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <InventoryFilters 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedBar={selectedBar}
+            setSelectedBar={setSelectedBar}
+            categories={categories}
+          />
 
-              <Select value={selectedBar} onValueChange={setSelectedBar}>
-                <SelectTrigger className="w-[180px]">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <SelectValue placeholder="Bar" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Bars</SelectItem>
-                  <SelectItem value="1">Main Bar</SelectItem>
-                  <SelectItem value="2">Pool Bar</SelectItem>
-                  <SelectItem value="3">Lounge Bar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px]">
-                    <div className="flex items-center gap-1">
-                      Item
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-5 w-5"
-                        onClick={() => handleSort("name")}
-                      >
-                        <ArrowUpDown className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-1">
-                      Quantity
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-5 w-5"
-                        onClick={() => handleSort("quantity")}
-                      >
-                        <ArrowUpDown className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center gap-1">
-                      Price
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-5 w-5"
-                        onClick={() => handleSort("unitPrice")}
-                      >
-                        <ArrowUpDown className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                      No inventory items found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <div className="bg-muted rounded p-1">
-                            <Package2 className="h-4 w-4" />
-                          </div>
-                          {item.name}
-                        </div>
-                      </TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell>{barNames[item.barId]}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span>
-                            {item.quantity} {item.unit}
-                            {item.quantity !== 1 ? "s" : ""}
-                          </span>
-                          {isLowStock(item) && (
-                            <AlertCircle className="h-4 w-4 text-destructive" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {isLowStock(item) ? (
-                          <Badge variant="destructive">Low Stock</Badge>
-                        ) : isExpiringSoon(item) ? (
-                          <Badge variant="outline" className="border-amber-500 text-amber-700">
-                            Expiring Soon
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-emerald-500 text-emerald-700">
-                            In Stock
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleViewDetails(item)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditItem(item)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Item
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleTransferItem(item)}>
-                              <MoveHorizontal className="mr-2 h-4 w-4" />
-                              Transfer
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => confirmDelete(item)}
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <InventoryTable 
+            items={filteredItems}
+            onSort={handleSort}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onViewDetails={handleViewDetails}
+            onEditItem={handleEditItem}
+            onTransferItem={handleTransferItem}
+            onDeleteItem={confirmDelete}
+          />
         </Card>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {selectedItem?.name}? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteItem}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteItemDialog
+        open={showDeleteDialog}
+        setOpen={setShowDeleteDialog}
+        item={selectedItem}
+        onDelete={handleDeleteItem}
+      />
     </Layout>
   );
 };
