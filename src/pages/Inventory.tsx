@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { InventoryItem } from "@/utils/types";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +31,8 @@ import {
   Plus,
   Search,
   Trash,
+  Edit,
+  MoveHorizontal,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,8 +42,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 // Mock inventory data
 const mockInventoryItems: InventoryItem[] = [
@@ -173,27 +185,77 @@ const barNames: Record<string, string> = {
   "3": "Lounge Bar",
 };
 
+type SortField = "name" | "quantity" | "unitPrice";
+type SortDirection = "asc" | "desc";
+
 const Inventory = () => {
   const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<InventoryItem[]>(mockInventoryItems);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedBar, setSelectedBar] = useState<string>("all");
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
   }
 
+  // Sorting function
+  const sortItems = (a: InventoryItem, b: InventoryItem) => {
+    let valueA: string | number;
+    let valueB: string | number;
+
+    switch (sortField) {
+      case "name":
+        valueA = a.name.toLowerCase();
+        valueB = b.name.toLowerCase();
+        break;
+      case "quantity":
+        valueA = a.quantity;
+        valueB = b.quantity;
+        break;
+      case "unitPrice":
+        valueA = a.unitPrice;
+        valueB = b.unitPrice;
+        break;
+      default:
+        valueA = a.name.toLowerCase();
+        valueB = b.name.toLowerCase();
+    }
+
+    if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+    if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  };
+
+  // Handler for sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field and default to ascending
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   // Filter items based on search, category, and bar
-  const filteredItems = items.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || item.category === selectedCategory;
-    const matchesBar = selectedBar === "all" || item.barId === selectedBar;
-    return matchesSearch && matchesCategory && matchesBar;
-  });
+  const filteredItems = items
+    .filter((item) => {
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "all" || item.category === selectedCategory;
+      const matchesBar = selectedBar === "all" || item.barId === selectedBar;
+      return matchesSearch && matchesCategory && matchesBar;
+    })
+    .sort(sortItems);
 
   // Get unique categories for filter
   const categories = Array.from(new Set(items.map((item) => item.category)));
@@ -209,6 +271,43 @@ const Inventory = () => {
     return expirationDate < threeMonthsFromNow;
   };
 
+  // Action handlers
+  const handleViewDetails = (item: InventoryItem) => {
+    setSelectedItem(item);
+    // In a real app, you would navigate to a detail page or open a modal
+    toast.info(`Viewing details for ${item.name}`);
+  };
+
+  const handleEditItem = (item: InventoryItem) => {
+    // In a real app, you would navigate to an edit page or open a modal
+    toast.info(`Editing ${item.name}`);
+  };
+
+  const handleTransferItem = (item: InventoryItem) => {
+    // In a real app, you would open a transfer modal
+    toast.info(`Transfer ${item.name} between bars`);
+  };
+
+  const confirmDelete = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteItem = () => {
+    if (selectedItem) {
+      // Filter out the item to delete
+      setItems(items.filter(item => item.id !== selectedItem.id));
+      toast.success(`${selectedItem.name} has been deleted`);
+      setShowDeleteDialog(false);
+      setSelectedItem(null);
+    }
+  };
+
+  const handleAddItem = () => {
+    toast.info("Opening add item form");
+    // In a real app, you would navigate to an add item page or open a modal
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-slide-in">
@@ -219,7 +318,7 @@ const Inventory = () => {
               Manage your bar inventory across all locations
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={handleAddItem}>
             <Plus className="h-4 w-4" /> Add Item
           </Button>
         </div>
@@ -280,7 +379,12 @@ const Inventory = () => {
                   <TableHead className="w-[300px]">
                     <div className="flex items-center gap-1">
                       Item
-                      <Button variant="ghost" size="icon" className="h-5 w-5">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-5 w-5"
+                        onClick={() => handleSort("name")}
+                      >
                         <ArrowUpDown className="h-3 w-3" />
                       </Button>
                     </div>
@@ -290,12 +394,29 @@ const Inventory = () => {
                   <TableHead>
                     <div className="flex items-center gap-1">
                       Quantity
-                      <Button variant="ghost" size="icon" className="h-5 w-5">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-5 w-5"
+                        onClick={() => handleSort("quantity")}
+                      >
                         <ArrowUpDown className="h-3 w-3" />
                       </Button>
                     </div>
                   </TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-1">
+                      Price
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-5 w-5"
+                        onClick={() => handleSort("unitPrice")}
+                      >
+                        <ArrowUpDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -355,14 +476,23 @@ const Inventory = () => {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(item)}>
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Edit Item</DropdownMenuItem>
-                            <DropdownMenuItem>Transfer</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Item
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleTransferItem(item)}>
+                              <MoveHorizontal className="mr-2 h-4 w-4" />
+                              Transfer
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => confirmDelete(item)}
+                            >
                               <Trash className="mr-2 h-4 w-4" />
                               Delete
                             </DropdownMenuItem>
@@ -377,6 +507,26 @@ const Inventory = () => {
           </div>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedItem?.name}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteItem}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
