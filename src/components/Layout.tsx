@@ -25,7 +25,7 @@ import {
   FileWarning
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -75,37 +75,37 @@ function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                  <a href="/dashboard">
+                  <Link to="/dashboard">
                     <LayoutDashboard className="h-5 w-5" />
                     <span>Dashboard</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/inventory")}>
-                  <a href="/inventory">
+                  <Link to="/inventory">
                     <Package2 className="h-5 w-5" />
                     <span>Inventory</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/bar-management")}>
-                  <a href="/bar-management">
+                  <Link to="/bar-management">
                     <GlassWater className="h-5 w-5" />
                     <span>Bar Management</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/reports")}>
-                  <a href="/reports">
+                  <Link to="/reports">
                     <BarChartHorizontal className="h-5 w-5" />
                     <span>Reports</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -119,10 +119,10 @@ function AppSidebar() {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/users")}>
-                    <a href="/users">
+                    <Link to="/users">
                       <Users className="h-5 w-5" />
                       <span>Staff</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -135,10 +135,10 @@ function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/settings")}>
-              <a href="/settings">
+              <Link to="/settings">
                 <Settings className="h-5 w-5" />
                 <span>Settings</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           
