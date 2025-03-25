@@ -11,6 +11,7 @@ import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryFilters } from "@/components/inventory/InventoryFilters";
 import { Card } from "@/components/ui/card";
 import { DeleteItemDialog } from "@/components/inventory/DeleteItemDialog";
+import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { mockInventoryItems } from "@/data/mockInventoryData";
 
 const Inventory = () => {
@@ -21,6 +22,7 @@ const Inventory = () => {
   const [selectedBar, setSelectedBar] = useState<string>("all");
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -80,7 +82,20 @@ const Inventory = () => {
       toast.error("Only managers can edit inventory items");
       return;
     }
-    toast.info(`Editing ${item.name}`);
+    setSelectedItem(item);
+    setShowEditDialog(true);
+  };
+
+  const handleSaveItem = (updatedItem: InventoryItem) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can edit inventory items");
+      return;
+    }
+    
+    // Update the item in the items array
+    setItems(items.map(item => 
+      item.id === updatedItem.id ? updatedItem : item
+    ));
   };
 
   const handleTransferItem = (item: InventoryItem) => {
@@ -183,6 +198,13 @@ const Inventory = () => {
         setOpen={setShowDeleteDialog}
         item={selectedItem}
         onDelete={handleDeleteItem}
+      />
+
+      <EditItemDialog
+        open={showEditDialog}
+        setOpen={setShowEditDialog}
+        item={selectedItem}
+        onSave={handleSaveItem}
       />
     </Layout>
   );
