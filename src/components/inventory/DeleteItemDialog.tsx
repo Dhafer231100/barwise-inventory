@@ -1,6 +1,9 @@
 
 import { InventoryItem } from "@/utils/types";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +26,25 @@ export function DeleteItemDialog({
   item, 
   onDelete 
 }: DeleteItemDialogProps) {
+  const { hasPermission } = useAuth();
+
+  // Check permission when dialog opens
+  useEffect(() => {
+    if (open && !hasPermission(['manager'])) {
+      setOpen(false);
+      toast.error("Only managers can delete inventory items");
+    }
+  }, [open, setOpen, hasPermission]);
+
+  const handleDelete = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can delete inventory items");
+      setOpen(false);
+      return;
+    }
+    onDelete();
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
@@ -36,7 +58,7 @@ export function DeleteItemDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onDelete}>
+          <Button variant="destructive" onClick={handleDelete}>
             Delete
           </Button>
         </DialogFooter>

@@ -3,6 +3,7 @@ import { InventoryItem } from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { barNames } from "@/data/mockInventoryData";
+import { useAuth } from "@/hooks/useAuth";
 import { AlertCircle, ChevronDown, Eye, Edit, MoveHorizontal, Package2, Trash } from "lucide-react";
 import {
   TableRow,
@@ -32,7 +33,9 @@ export function InventoryTableRow({
   onTransferItem,
   onDeleteItem,
 }: InventoryTableRowProps) {
+  const { user, hasPermission } = useAuth();
   const isLowStock = item.quantity < item.minimumLevel;
+  const canEdit = hasPermission(['manager']);
   
   const isExpiringSoon = () => {
     if (!item.expirationDate) return false;
@@ -94,22 +97,28 @@ export function InventoryTableRow({
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEditItem(item)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Item
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTransferItem(item)}>
-              <MoveHorizontal className="mr-2 h-4 w-4" />
-              Transfer
-            </DropdownMenuItem>
+            {canEdit && (
+              <DropdownMenuItem onClick={() => onEditItem(item)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Item
+              </DropdownMenuItem>
+            )}
+            {canEdit && (
+              <DropdownMenuItem onClick={() => onTransferItem(item)}>
+                <MoveHorizontal className="mr-2 h-4 w-4" />
+                Transfer
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              className="text-destructive"
-              onClick={() => onDeleteItem(item)}
-            >
-              <Trash className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
+            {canEdit && (
+              <DropdownMenuItem 
+                className="text-destructive"
+                onClick={() => onDeleteItem(item)}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>

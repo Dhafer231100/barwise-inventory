@@ -14,7 +14,7 @@ import { DeleteItemDialog } from "@/components/inventory/DeleteItemDialog";
 import { mockInventoryItems } from "@/data/mockInventoryData";
 
 const Inventory = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, hasPermission } = useAuth();
   const [items, setItems] = useState<InventoryItem[]>(mockInventoryItems);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -76,19 +76,37 @@ const Inventory = () => {
   };
 
   const handleEditItem = (item: InventoryItem) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can edit inventory items");
+      return;
+    }
     toast.info(`Editing ${item.name}`);
   };
 
   const handleTransferItem = (item: InventoryItem) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can transfer inventory items");
+      return;
+    }
     toast.info(`Transfer ${item.name} between bars`);
   };
 
   const confirmDelete = (item: InventoryItem) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can delete inventory items");
+      return;
+    }
     setSelectedItem(item);
     setShowDeleteDialog(true);
   };
 
   const handleDeleteItem = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can delete inventory items");
+      setShowDeleteDialog(false);
+      return;
+    }
+    
     if (selectedItem) {
       // Filter out the item to delete
       setItems(items.filter(item => item.id !== selectedItem.id));
@@ -99,6 +117,10 @@ const Inventory = () => {
   };
 
   const handleAddItem = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can add inventory items");
+      return;
+    }
     toast.info("Opening add item form");
   };
 
@@ -123,7 +145,11 @@ const Inventory = () => {
               Manage your bar inventory across all locations
             </p>
           </div>
-          <Button className="flex items-center gap-2" onClick={handleAddItem}>
+          <Button 
+            className="flex items-center gap-2" 
+            onClick={handleAddItem}
+            disabled={!hasPermission(['manager'])}
+          >
             <Plus className="h-4 w-4" /> Add Item
           </Button>
         </div>
