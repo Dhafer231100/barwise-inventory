@@ -13,6 +13,8 @@ import { Card } from "@/components/ui/card";
 import { DeleteItemDialog } from "@/components/inventory/DeleteItemDialog";
 import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { mockInventoryItems } from "@/data/mockInventoryData";
+import { AddItemDialog } from "@/components/inventory/AddItemDialog";
+import { TransferItemDialog } from "@/components/inventory/TransferItemDialog";
 
 const Inventory = () => {
   const { isAuthenticated, loading, hasPermission } = useAuth();
@@ -23,6 +25,8 @@ const Inventory = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -96,6 +100,8 @@ const Inventory = () => {
     setItems(items.map(item => 
       item.id === updatedItem.id ? updatedItem : item
     ));
+    toast.success(`${updatedItem.name} has been updated`);
+    setShowEditDialog(false);
   };
 
   const handleTransferItem = (item: InventoryItem) => {
@@ -103,7 +109,43 @@ const Inventory = () => {
       toast.error("Only managers can transfer inventory items");
       return;
     }
-    toast.info(`Transfer ${item.name} between bars`);
+    setSelectedItem(item);
+    setShowTransferDialog(true);
+  };
+
+  const handleSaveTransfer = (item: InventoryItem, targetBarId: string, quantity: number) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can transfer inventory items");
+      return;
+    }
+    
+    // In a real app, this would create a new item record at the target bar
+    // and reduce the quantity at the current bar
+    
+    // For the demo, we'll just update the current item's bar and show a toast
+    const updatedItems = [...items];
+    const itemIndex = updatedItems.findIndex(i => i.id === item.id);
+    
+    if (itemIndex >= 0) {
+      // Update quantity
+      updatedItems[itemIndex] = {
+        ...updatedItems[itemIndex],
+        quantity: updatedItems[itemIndex].quantity - quantity
+      };
+      
+      // Add a new item entry for the transferred amount
+      const newItemId = `${item.id}-transfer-${Date.now()}`;
+      updatedItems.push({
+        ...item,
+        id: newItemId,
+        barId: targetBarId,
+        quantity: quantity
+      });
+      
+      setItems(updatedItems);
+      toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to another bar`);
+      setShowTransferDialog(false);
+    }
   };
 
   const confirmDelete = (item: InventoryItem) => {
@@ -136,7 +178,25 @@ const Inventory = () => {
       toast.error("Only managers can add inventory items");
       return;
     }
-    toast.info("Opening add item form");
+    setShowAddDialog(true);
+  };
+
+  const handleAddNewItem = (newItem: Omit<InventoryItem, 'id'>) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can add inventory items");
+      return;
+    }
+    
+    // Generate a simple ID for the new item
+    const id = `item-${Date.now()}`;
+    const itemToAdd: InventoryItem = {
+      id,
+      ...newItem
+    };
+    
+    setItems([...items, itemToAdd]);
+    toast.success(`${newItem.name} has been added to inventory`);
+    setShowAddDialog(false);
   };
 
   const handleSort = (field: "name" | "quantity" | "unitPrice") => {
@@ -205,6 +265,19 @@ const Inventory = () => {
         setOpen={setShowEditDialog}
         item={selectedItem}
         onSave={handleSaveItem}
+      />
+
+      <AddItemDialog
+        open={showAddDialog}
+        setOpen={setShowAddDialog}
+        onAdd={handleAddNewItem}
+      />
+
+      <TransferItemDialog
+        open={showTransferDialog}
+        setOpen={setShowTransferDialog}
+        item={selectedItem}
+        onTransfer={handleSaveTransfer}
       />
     </Layout>
   );
