@@ -14,6 +14,7 @@ import BarManagement from "./pages/BarManagement";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import SalesManagement from "./pages/SalesManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/bar-management" element={<BarManagement />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/sales" element={<SalesManagement />} />
             <Route path="/users" element={<Users />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />

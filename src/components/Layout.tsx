@@ -22,7 +22,7 @@ import {
   Users, 
   Settings,
   LogOut,
-  FileWarning
+  DollarSign
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
@@ -87,6 +87,15 @@ function AppSidebar() {
                   <Link to="/inventory">
                     <Package2 className="h-5 w-5" />
                     <span>Inventory</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/sales")}>
+                  <Link to="/sales">
+                    <DollarSign className="h-5 w-5" />
+                    <span>Sales</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

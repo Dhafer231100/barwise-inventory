@@ -1,4 +1,3 @@
-
 export type UserRole = 'manager' | 'bartender' | 'inventory_staff';
 
 export interface User {
@@ -89,4 +88,16 @@ export interface InventoryAlert {
   barName: string;
   message: string;
   createdAt: string;
+}
+
+export interface Sale {
+  id: string;
+  barId: string;
+  barName: string;
+  productName: string;
+  amount: number;
+  quantity: number;
+  total: number;
+  date: string;
+  staffName: string;
 }
