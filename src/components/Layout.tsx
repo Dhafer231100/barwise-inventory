@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { Logo } from "@/components/Logo";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -66,7 +67,9 @@ function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="text-lg font-semibold py-4">
-        <span className="px-4">Hotel BarWise</span>
+        <div className="px-4">
+          <Logo />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

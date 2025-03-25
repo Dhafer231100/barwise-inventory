@@ -4,9 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BarChart2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
+import { Logo } from "@/components/Logo";
 
 export function LoginForm() {
   const { login, isAuthenticated, loading } = useAuth();
@@ -64,12 +65,10 @@ export function LoginForm() {
     <Card className="w-full max-w-md mx-auto overflow-hidden shadow-lg animate-scale-in">
       <CardHeader className="space-y-1 text-center bg-primary/5 pb-6">
         <div className="flex justify-center mb-2">
-          <div className="bg-primary text-white p-2 rounded-full">
-            <BarChart2 className="h-6 w-6" />
-          </div>
+          <Logo showText={false} className="mx-auto" />
         </div>
-        <CardTitle className="text-2xl">BarWise</CardTitle>
-        <CardDescription>Hotel Bar Management System</CardDescription>
+        <CardTitle className="text-2xl">Regency Hotel</CardTitle>
+        <CardDescription>Bar Management System</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-4">

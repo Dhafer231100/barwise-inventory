@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Bell, BarChart2, User } from "lucide-react";
+import { Menu, Bell, User } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Logo } from "@/components/Logo";
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -28,8 +29,8 @@ export function Navbar() {
             </SidebarTrigger>
           </div>
           <a href="/" className="flex items-center gap-2">
-            <BarChart2 className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-lg hidden md:block">BarWise</span>
+            <Logo showText={false} />
+            <span className="font-semibold text-lg hidden md:block">Regency Hotel</span>
           </a>
         </div>
         
