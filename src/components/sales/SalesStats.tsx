@@ -7,6 +7,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 // Colors for charts
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
+// Empty data for charts when no sales exist
+const emptyBarData = [
+  { name: "No Data", value: 0 }
+];
+
+const emptyPieData = [
+  { name: "No Data", revenue: 0, count: 0 }
+];
+
 interface SalesStatsProps {
   sales: Sale[];
 }
@@ -14,6 +23,10 @@ interface SalesStatsProps {
 export function SalesStats({ sales }: SalesStatsProps) {
   // Calculate sales by bar
   const salesByBar = useMemo(() => {
+    if (sales.length === 0) {
+      return emptyBarData;
+    }
+    
     const barMap = new Map<string, number>();
     
     sales.forEach(sale => {
@@ -29,6 +42,10 @@ export function SalesStats({ sales }: SalesStatsProps) {
   
   // Calculate top selling products
   const topProducts = useMemo(() => {
+    if (sales.length === 0) {
+      return emptyPieData;
+    }
+    
     const productMap = new Map<string, { total: number, count: number }>();
     
     sales.forEach(sale => {
@@ -112,6 +129,8 @@ export function SalesStats({ sales }: SalesStatsProps) {
                     percent,
                     index,
                   }) => {
+                    if (sales.length === 0) return null;
+                    
                     const RADIAN = Math.PI / 180;
                     const radius = 25 + innerRadius + (outerRadius - innerRadius);
                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -148,6 +167,11 @@ export function SalesStats({ sales }: SalesStatsProps) {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
+            {sales.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                No sales data available
+              </div>
+            )}
           </div>
         </DashboardCard>
       </div>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,62 +12,31 @@ import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
 
 const salesData = [
-  { name: "Mon", Main: 4000, Pool: 2400, Lounge: 1800 },
-  { name: "Tue", Main: 3000, Pool: 1398, Lounge: 2000 },
-  { name: "Wed", Main: 2000, Pool: 9800, Lounge: 2290 },
-  { name: "Thu", Main: 2780, Pool: 3908, Lounge: 2500 },
-  { name: "Fri", Main: 4890, Pool: 4800, Lounge: 3100 },
-  { name: "Sat", Main: 6390, Pool: 5800, Lounge: 4200 },
-  { name: "Sun", Main: 5490, Pool: 4300, Lounge: 3800 },
+  { name: "Mon", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Tue", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Wed", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Thu", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Fri", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Sat", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Sun", Main: 0, Pool: 0, Lounge: 0 },
 ];
 
 const inventoryData = [
-  { name: "Vodka", current: 24, minimum: 10 },
-  { name: "Gin", current: 18, minimum: 8 },
-  { name: "Rum", current: 12, minimum: 10 },
-  { name: "Tequila", current: 9, minimum: 10 },
-  { name: "Whiskey", current: 15, minimum: 8 },
-  { name: "Wine", current: 7, minimum: 10 },
+  { name: "Vodka", current: 0, minimum: 10 },
+  { name: "Gin", current: 0, minimum: 8 },
+  { name: "Rum", current: 0, minimum: 10 },
+  { name: "Tequila", current: 0, minimum: 10 },
+  { name: "Whiskey", current: 0, minimum: 8 },
+  { name: "Wine", current: 0, minimum: 10 },
 ];
 
-const mockAlerts: InventoryAlert[] = [
-  {
-    id: "1",
-    itemId: "1",
-    itemName: "Tequila",
-    type: "low_stock",
-    barId: "1",
-    barName: "Main Bar",
-    message: "Tequila is below minimum stock level (9 of 10)",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    itemId: "2",
-    itemName: "Wine",
-    type: "low_stock",
-    barId: "1",
-    barName: "Main Bar",
-    message: "Wine is below minimum stock level (7 of 10)",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    itemId: "3",
-    itemName: "Fresh Lime Juice",
-    type: "expiring_soon",
-    barId: "2",
-    barName: "Pool Bar",
-    message: "Fresh Lime Juice expiring in 2 days",
-    createdAt: new Date().toISOString(),
-  },
-];
+const mockAlerts: InventoryAlert[] = [];
 
 const mockStats: DashboardStats = {
-  totalSales: 24590,
-  ordersCompleted: 386,
-  lowStockItems: 2,
-  expiringSoon: 1,
+  totalSales: 0,
+  ordersCompleted: 0,
+  lowStockItems: 0,
+  expiringSoon: 0,
 };
 
 const Dashboard = () => {
@@ -96,21 +64,21 @@ const Dashboard = () => {
             value={`$${stats.totalSales.toLocaleString()}`}
             description="Last 7 days"
             icon={DollarSign}
-            trend={{ value: 12, isPositive: true }}
+            trend={{ value: 0, isPositive: true }}
           />
           <StatsCard
             title="Orders Completed"
             value={stats.ordersCompleted}
             description="Last 7 days"
             icon={BarChart3}
-            trend={{ value: 8, isPositive: true }}
+            trend={{ value: 0, isPositive: true }}
           />
           <StatsCard
             title="Low Stock Items"
             value={stats.lowStockItems}
             description="Needs attention"
             icon={Package2}
-            trend={{ value: 5, isPositive: false }}
+            trend={{ value: 0, isPositive: true }}
           />
           <StatsCard
             title="Expiring Soon"
@@ -172,37 +140,43 @@ const Dashboard = () => {
 
           <DashboardCard title="Recent Alerts" className="overflow-auto">
             <div className="space-y-4">
-              {alerts.map((alert) => (
-                <Card key={alert.id} className="bg-muted/50">
-                  <CardContent className="p-4">
-                    <div className="flex gap-3">
-                      <div
-                        className={`p-2 rounded-full ${
-                          alert.type === "low_stock"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-rose-100 text-rose-800"
-                        }`}
-                      >
-                        <AlertTriangle className="h-4 w-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm">{alert.itemName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {alert.message}
-                        </p>
-                        <div className="flex justify-between items-center pt-1">
-                          <span className="text-xs text-muted-foreground">
-                            {alert.barName}
-                          </span>
-                          <Button variant="ghost" size="sm" className="h-7 text-xs">
-                            Resolve
-                          </Button>
+              {alerts.length > 0 ? (
+                alerts.map((alert) => (
+                  <Card key={alert.id} className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex gap-3">
+                        <div
+                          className={`p-2 rounded-full ${
+                            alert.type === "low_stock"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-rose-100 text-rose-800"
+                          }`}
+                        >
+                          <AlertTriangle className="h-4 w-4" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-sm">{alert.itemName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {alert.message}
+                          </p>
+                          <div className="flex justify-between items-center pt-1">
+                            <span className="text-xs text-muted-foreground">
+                              {alert.barName}
+                            </span>
+                            <Button variant="ghost" size="sm" className="h-7 text-xs">
+                              Resolve
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center p-4 text-muted-foreground">
+                  No alerts found
+                </div>
+              )}
             </div>
           </DashboardCard>
         </div>
