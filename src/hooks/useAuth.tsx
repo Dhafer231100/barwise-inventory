@@ -11,30 +11,15 @@ interface AuthContextType {
   hasPermission: (roles: UserRole[]) => boolean;
 }
 
-// Mock users for demo
+// Updated mock users for demo
 const MOCK_USERS = [
   {
     id: '1',
-    name: 'John Manager',
-    email: 'manager@hotel.com',
+    name: 'Dhafer Kallel',
+    email: 'Manager@hotel.com',
     password: 'manager123',
     role: 'manager' as UserRole,
-  },
-  {
-    id: '2',
-    name: 'Alice Bartender',
-    email: 'bartender@hotel.com',
-    password: 'bartender123',
-    role: 'bartender' as UserRole,
-    barId: '1',
-  },
-  {
-    id: '3',
-    name: 'Bob Inventory',
-    email: 'inventory@hotel.com',
-    password: 'inventory123',
-    role: 'inventory_staff' as UserRole,
-  },
+  }
 ];
 
 const AuthContext = createContext<AuthContextType | null>(null);

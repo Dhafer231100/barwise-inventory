@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,15 +21,6 @@ import { UserRole } from "@/utils/types";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, UserPlus, Shield } from "lucide-react";
 
-// Mock staff data
-const MOCK_STAFF = [
-  { id: '1', name: 'John Manager', email: 'manager@hotel.com', role: 'manager' as UserRole, barId: '1', barName: 'Main Bar' },
-  { id: '2', name: 'Alice Bartender', email: 'bartender@hotel.com', role: 'bartender' as UserRole, barId: '1', barName: 'Main Bar' },
-  { id: '3', name: 'Bob Inventory', email: 'inventory@hotel.com', role: 'inventory_staff' as UserRole, barId: null, barName: null },
-  { id: '4', name: 'Emma Bartender', email: 'emma@hotel.com', role: 'bartender' as UserRole, barId: '2', barName: 'Pool Bar' },
-  { id: '5', name: 'David Inventory', email: 'david@hotel.com', role: 'inventory_staff' as UserRole, barId: null, barName: null },
-];
-
 // Mock bar data
 const MOCK_BARS = [
   { id: '1', name: 'Main Bar', location: 'Lobby Floor' },
@@ -40,7 +30,10 @@ const MOCK_BARS = [
 
 export default function Users() {
   const { user } = useAuth();
-  const [staff, setStaff] = useState(MOCK_STAFF);
+  // Initialize with only Dhafer Kallel as staff
+  const [staff, setStaff] = useState([
+    { id: '1', name: 'Dhafer Kallel', email: 'Manager@hotel.com', role: 'manager' as UserRole, barId: null, barName: 'All' },
+  ]);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -48,7 +41,7 @@ export default function Users() {
     role: 'bartender' as UserRole,
     barId: '',
   });
-  const [selectedUser, setSelectedUser] = useState<typeof MOCK_STAFF[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<typeof staff[0] | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
@@ -118,7 +111,7 @@ export default function Users() {
     toast.success("User updated successfully");
   };
   
-  const handleEditClick = (user: typeof MOCK_STAFF[0]) => {
+  const handleEditClick = (user: typeof staff[0]) => {
     setSelectedUser(user);
     setIsEditDialogOpen(true);
   };
