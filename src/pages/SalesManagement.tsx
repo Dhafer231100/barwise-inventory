@@ -27,66 +27,10 @@ import { EditSaleDialog } from "@/components/sales/EditSaleDialog";
 import { DeleteSaleDialog } from "@/components/sales/DeleteSaleDialog";
 import { SalesStats } from "@/components/sales/SalesStats";
 import { Sale } from "@/utils/types";
-import { PlusCircle, Pencil, Trash2, BarChart3 } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, BarChart3, RefreshCcw } from "lucide-react";
 
-// Mock sales data
-const MOCK_SALES: Sale[] = [
-  {
-    id: "1",
-    barId: "1",
-    barName: "Main Bar",
-    productName: "Mojito",
-    amount: 12.99,
-    quantity: 2,
-    total: 25.98,
-    date: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-    staffName: "John Doe"
-  },
-  {
-    id: "2",
-    barId: "2",
-    barName: "Pool Bar",
-    productName: "Margarita",
-    amount: 14.99,
-    quantity: 3,
-    total: 44.97,
-    date: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    staffName: "Jane Smith"
-  },
-  {
-    id: "3",
-    barId: "3",
-    barName: "Rooftop Bar",
-    productName: "Whiskey Sour",
-    amount: 16.99,
-    quantity: 1,
-    total: 16.99,
-    date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    staffName: "Mike Johnson"
-  },
-  {
-    id: "4",
-    barId: "1",
-    barName: "Main Bar",
-    productName: "Gin & Tonic",
-    amount: 11.99,
-    quantity: 4,
-    total: 47.96,
-    date: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-    staffName: "John Doe"
-  },
-  {
-    id: "5",
-    barId: "2",
-    barName: "Pool Bar",
-    productName: "Piña Colada",
-    amount: 13.99,
-    quantity: 2,
-    total: 27.98,
-    date: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
-    staffName: "Jane Smith"
-  }
-];
+// Empty sales data array (reset all sales)
+const MOCK_SALES: Sale[] = [];
 
 const SalesManagement = () => {
   const { isAuthenticated, loading, hasPermission } = useAuth();
@@ -125,6 +69,17 @@ const SalesManagement = () => {
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
   }
+
+  // Reset all sales data
+  const handleResetSales = () => {
+    if (!canManageSales) {
+      toast.error("Only managers can reset sales");
+      return;
+    }
+    
+    setSales([]);
+    toast.success("All sales have been reset");
+  };
 
   // Handler for adding a new sale
   const handleAddSale = (sale: Omit<Sale, 'id'>) => {
@@ -198,10 +153,20 @@ const SalesManagement = () => {
           </div>
           <div className="flex items-center gap-2">
             {canManageSales && (
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Add Sale
-              </Button>
+              <>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  Add Sale
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleResetSales}
+                  className="gap-2"
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                  Reset All Sales
+                </Button>
+              </>
             )}
             <Button 
               variant="outline" 
