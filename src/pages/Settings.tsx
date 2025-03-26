@@ -9,9 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Moon, Sun } from "lucide-react";
 
 export default function Settings() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [notifications, setNotifications] = useState({
     email: true,
     browser: true,
@@ -47,6 +51,10 @@ export default function Settings() {
     toast.success("Profile updated successfully");
   };
 
+  const toggleDarkMode = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-8">
@@ -65,7 +73,7 @@ export default function Settings() {
           </TabsList>
           
           <TabsContent value="general">
-            <Card>
+            <Card className="border-border dark:border-gray-700 dark:shadow-md">
               <CardHeader>
                 <CardTitle>General Settings</CardTitle>
                 <CardDescription>
@@ -80,7 +88,43 @@ export default function Settings() {
                       Toggle between light and dark mode
                     </p>
                   </div>
-                  <Switch id="dark-mode" />
+                  <div className="flex items-center gap-2">
+                    <Sun className="h-4 w-4 text-muted-foreground" />
+                    <Switch 
+                      id="dark-mode" 
+                      checked={theme === "dark"}
+                      onCheckedChange={toggleDarkMode}
+                    />
+                    <Moon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <Label className="mb-2 block">Theme Selection</Label>
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      variant={theme === "light" ? "default" : "outline"} 
+                      onClick={() => setTheme("light")}
+                      className="flex items-center gap-2"
+                    >
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </Button>
+                    <Button 
+                      variant={theme === "dark" ? "default" : "outline"} 
+                      onClick={() => setTheme("dark")}
+                      className="flex items-center gap-2"
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </Button>
+                    <Button 
+                      variant={theme === "system" ? "default" : "outline"} 
+                      onClick={() => setTheme("system")}
+                      className="flex items-center gap-2"
+                    >
+                      System
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
@@ -99,7 +143,7 @@ export default function Settings() {
           </TabsContent>
           
           <TabsContent value="profile">
-            <Card>
+            <Card className="border-border dark:border-gray-700 dark:shadow-md">
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
@@ -132,7 +176,7 @@ export default function Settings() {
           </TabsContent>
           
           <TabsContent value="notifications">
-            <Card>
+            <Card className="border-border dark:border-gray-700 dark:shadow-md">
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>
@@ -169,7 +213,7 @@ export default function Settings() {
                     />
                   </div>
                   
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t dark:border-gray-700">
                     <h3 className="mb-3 text-sm font-medium">Alert types</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">

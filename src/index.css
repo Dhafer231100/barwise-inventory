@@ -75,6 +75,15 @@
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 224 76% 48%;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 224 76% 48%;
   }
 }
 
@@ -110,7 +119,7 @@
     @apply transition-all duration-300 hover:shadow-md hover:bg-white dark:hover:bg-slate-900;
   }
   .glass-panel {
-    @apply bg-white bg-opacity-70 backdrop-blur-sm border border-white border-opacity-20 shadow-sm;
+    @apply bg-white bg-opacity-70 backdrop-blur-sm border border-white border-opacity-20 shadow-sm dark:bg-slate-900 dark:bg-opacity-70 dark:border-slate-800;
   }
   .text-balance {
     text-wrap: balance;
