@@ -30,7 +30,7 @@ export function Navbar() {
           </div>
           <a href="/" className="flex items-center gap-2">
             <Logo showText={false} />
-            <span className="font-semibold text-lg hidden md:block">Regency Hotel</span>
+            <span className="font-semibold text-lg hidden md:block">Regency BarWise</span>
           </a>
         </div>
         

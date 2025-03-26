@@ -67,7 +67,7 @@ export function LoginForm() {
         <div className="flex justify-center mb-2">
           <Logo showText={false} className="mx-auto" />
         </div>
-        <CardTitle className="text-2xl">Regency Hotel</CardTitle>
+        <CardTitle className="text-2xl">Regency BarWise</CardTitle>
         <CardDescription>Bar Management System</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
