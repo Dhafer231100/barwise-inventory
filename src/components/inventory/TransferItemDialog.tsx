@@ -99,6 +99,7 @@ export function TransferItemDialog({
     
     // Process transfer
     onTransfer(item, targetBarId, quantity);
+    setOpen(false);
   };
 
   if (!item) return null;

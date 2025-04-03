@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -28,31 +28,81 @@ export default function Settings() {
     name: user?.name || "",
     email: user?.email || "",
   });
+  
+  const [compactView, setCompactView] = useState(false);
+
+  // Load saved settings
+  useEffect(() => {
+    const savedNotifications = localStorage.getItem('notificationSettings');
+    if (savedNotifications) {
+      setNotifications(JSON.parse(savedNotifications));
+    }
+    
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    } else if (user) {
+      setProfile({
+        name: user.name,
+        email: user.email,
+      });
+    }
+    
+    const savedCompactView = localStorage.getItem('compactView');
+    if (savedCompactView) {
+      setCompactView(JSON.parse(savedCompactView));
+    }
+  }, [user]);
+
+  // Update profile when user changes
+  useEffect(() => {
+    if (user) {
+      setProfile(prev => ({
+        ...prev,
+        name: prev.name || user.name,
+        email: prev.email || user.email,
+      }));
+    }
+  }, [user]);
 
   const handleNotificationChange = (key: keyof typeof notifications) => {
-    setNotifications({
+    const updatedNotifications = {
       ...notifications,
       [key]: !notifications[key],
-    });
+    };
+    setNotifications(updatedNotifications);
+    localStorage.setItem('notificationSettings', JSON.stringify(updatedNotifications));
   };
 
   const handleProfileChange = (key: keyof typeof profile, value: string) => {
-    setProfile({
+    const updatedProfile = {
       ...profile,
       [key]: value,
-    });
+    };
+    setProfile(updatedProfile);
+    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+  };
+
+  const handleCompactViewChange = (value: boolean) => {
+    setCompactView(value);
+    localStorage.setItem('compactView', JSON.stringify(value));
   };
 
   const saveSettings = () => {
+    localStorage.setItem('notificationSettings', JSON.stringify(notifications));
+    localStorage.setItem('compactView', JSON.stringify(compactView));
     toast.success("Settings saved successfully");
   };
 
   const saveProfile = () => {
+    localStorage.setItem('userProfile', JSON.stringify(profile));
     toast.success("Profile updated successfully");
   };
 
   const toggleDarkMode = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
   };
 
   return (
@@ -133,7 +183,11 @@ export default function Settings() {
                       Show more content in less space
                     </p>
                   </div>
-                  <Switch id="compact-view" />
+                  <Switch 
+                    id="compact-view" 
+                    checked={compactView}
+                    onCheckedChange={handleCompactViewChange}
+                  />
                 </div>
               </CardContent>
               <CardFooter>

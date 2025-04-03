@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { InventoryItem } from "@/utils/types";
@@ -17,7 +18,7 @@ import { TransferItemDialog } from "@/components/inventory/TransferItemDialog";
 
 const Inventory = () => {
   const { isAuthenticated, loading, hasPermission } = useAuth();
-  const [items, setItems] = useState<InventoryItem[]>(mockInventoryItems);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedBar, setSelectedBar] = useState<string>("all");
@@ -28,6 +29,26 @@ const Inventory = () => {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Load saved inventory items from localStorage on component mount
+  useEffect(() => {
+    const savedItems = localStorage.getItem('inventoryItems');
+    if (savedItems) {
+      setItems(JSON.parse(savedItems));
+    } else {
+      // If no saved items, use mock data
+      setItems(mockInventoryItems);
+      // Save mock data to localStorage
+      localStorage.setItem('inventoryItems', JSON.stringify(mockInventoryItems));
+    }
+  }, []);
+
+  // Save items to localStorage whenever they change
+  useEffect(() => {
+    if (items.length > 0) {
+      localStorage.setItem('inventoryItems', JSON.stringify(items));
+    }
+  }, [items]);
 
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
@@ -92,9 +113,11 @@ const Inventory = () => {
       return;
     }
     
-    setItems(items.map(item => 
+    const updatedItems = items.map(item => 
       item.id === updatedItem.id ? updatedItem : item
-    ));
+    );
+    setItems(updatedItems);
+    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     toast.success(`${updatedItem.name} has been updated`);
     setShowEditDialog(false);
   };
@@ -152,6 +175,7 @@ const Inventory = () => {
     }
     
     setItems(updatedItems);
+    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     
     toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Pool Bar" : "Rooftop Bar"}`);
     setShowTransferDialog(false);
@@ -174,7 +198,9 @@ const Inventory = () => {
     }
     
     if (selectedItem) {
-      setItems(items.filter(item => item.id !== selectedItem.id));
+      const updatedItems = items.filter(item => item.id !== selectedItem.id);
+      setItems(updatedItems);
+      localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
       toast.success(`${selectedItem.name} has been deleted`);
       setShowDeleteDialog(false);
       setSelectedItem(null);
@@ -201,7 +227,9 @@ const Inventory = () => {
       ...newItem
     };
     
-    setItems([...items, itemToAdd]);
+    const updatedItems = [...items, itemToAdd];
+    setItems(updatedItems);
+    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     toast.success(`${newItem.name} has been added to inventory`);
     setShowAddDialog(false);
   };

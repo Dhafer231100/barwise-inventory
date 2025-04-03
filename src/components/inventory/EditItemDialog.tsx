@@ -1,4 +1,3 @@
-
 import { InventoryItem } from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -118,8 +117,6 @@ export function EditItemDialog({
       };
 
       onSave(updatedItem);
-      toast.success(`${updatedItem.name} has been updated`);
-      setOpen(false);
     } catch (error) {
       console.error("Failed to update item:", error);
       toast.error("Failed to update item");
