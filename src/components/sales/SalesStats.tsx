@@ -23,13 +23,15 @@ interface SalesStatsProps {
 export function SalesStats({ sales }: SalesStatsProps) {
   // Calculate sales by bar
   const salesByBar = useMemo(() => {
-    if (sales.length === 0) {
+    if (!sales || sales.length === 0) {
       return emptyBarData;
     }
     
     const barMap = new Map<string, number>();
     
     sales.forEach(sale => {
+      if (!sale.barName) return; // Skip sales with missing bar names
+      
       const currentTotal = barMap.get(sale.barName) || 0;
       barMap.set(sale.barName, currentTotal + sale.total);
     });
@@ -42,13 +44,15 @@ export function SalesStats({ sales }: SalesStatsProps) {
   
   // Calculate top selling products
   const topProducts = useMemo(() => {
-    if (sales.length === 0) {
+    if (!sales || sales.length === 0) {
       return emptyPieData;
     }
     
     const productMap = new Map<string, { total: number, count: number }>();
     
     sales.forEach(sale => {
+      if (!sale.productName) return; // Skip sales with missing product names
+      
       const current = productMap.get(sale.productName) || { total: 0, count: 0 };
       productMap.set(sale.productName, {
         total: current.total + sale.total,
@@ -68,19 +72,23 @@ export function SalesStats({ sales }: SalesStatsProps) {
   
   // Calculate total revenue
   const totalRevenue = useMemo(() => {
-    return sales.reduce((sum, sale) => sum + sale.total, 0);
+    if (!sales || sales.length === 0) return 0;
+    return sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
   }, [sales]);
   
   // Calculate total items sold
   const totalSold = useMemo(() => {
-    return sales.reduce((sum, sale) => sum + sale.quantity, 0);
+    if (!sales || sales.length === 0) return 0;
+    return sales.reduce((sum, sale) => sum + (sale.quantity || 0), 0);
   }, [sales]);
+
+  const hasData = sales && sales.length > 0;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <DashboardCard title="Revenue by Bar">
-          <div className="h-[300px]">
+          <div className="h-[300px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={salesByBar}
@@ -106,11 +114,16 @@ export function SalesStats({ sales }: SalesStatsProps) {
                 />
               </BarChart>
             </ResponsiveContainer>
+            {!hasData && (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                No sales data available
+              </div>
+            )}
           </div>
         </DashboardCard>
         
         <DashboardCard title="Top Selling Products">
-          <div className="h-[300px]">
+          <div className="h-[300px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -129,7 +142,7 @@ export function SalesStats({ sales }: SalesStatsProps) {
                     percent,
                     index,
                   }) => {
-                    if (sales.length === 0) return null;
+                    if (!hasData) return null;
                     
                     const RADIAN = Math.PI / 180;
                     const radius = 25 + innerRadius + (outerRadius - innerRadius);
@@ -167,7 +180,7 @@ export function SalesStats({ sales }: SalesStatsProps) {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-            {sales.length === 0 && (
+            {!hasData && (
               <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                 No sales data available
               </div>

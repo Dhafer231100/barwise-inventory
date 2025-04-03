@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,7 +33,6 @@ const Inventory = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Filter items based on search, category, and bar
   const filteredItems = items
     .filter((item) => {
       const matchesSearch = item.name
@@ -72,10 +70,8 @@ const Inventory = () => {
       return 0;
     });
 
-  // Get unique categories for filter
   const categories = Array.from(new Set(items.map((item) => item.category)));
 
-  // Action handlers
   const handleViewDetails = (item: InventoryItem) => {
     setSelectedItem(item);
     toast.info(`Viewing details for ${item.name}`);
@@ -96,7 +92,6 @@ const Inventory = () => {
       return;
     }
     
-    // Update the item in the items array
     setItems(items.map(item => 
       item.id === updatedItem.id ? updatedItem : item
     ));
@@ -119,33 +114,47 @@ const Inventory = () => {
       return;
     }
     
-    // In a real app, this would create a new item record at the target bar
-    // and reduce the quantity at the current bar
-    
-    // For the demo, we'll just update the current item's bar and show a toast
     const updatedItems = [...items];
-    const itemIndex = updatedItems.findIndex(i => i.id === item.id);
     
-    if (itemIndex >= 0) {
-      // Update quantity
-      updatedItems[itemIndex] = {
-        ...updatedItems[itemIndex],
-        quantity: updatedItems[itemIndex].quantity - quantity
+    const sourceItemIndex = updatedItems.findIndex(i => i.id === item.id);
+    
+    if (sourceItemIndex === -1) {
+      toast.error("Source item not found");
+      return;
+    }
+    
+    const targetItemIndex = updatedItems.findIndex(i => 
+      i.name === item.name && 
+      i.category === item.category && 
+      i.barId === targetBarId &&
+      i.unit === item.unit
+    );
+    
+    updatedItems[sourceItemIndex] = {
+      ...updatedItems[sourceItemIndex],
+      quantity: updatedItems[sourceItemIndex].quantity - quantity
+    };
+    
+    if (targetItemIndex >= 0) {
+      updatedItems[targetItemIndex] = {
+        ...updatedItems[targetItemIndex],
+        quantity: updatedItems[targetItemIndex].quantity + quantity
       };
-      
-      // Add a new item entry for the transferred amount
-      const newItemId = `${item.id}-transfer-${Date.now()}`;
-      updatedItems.push({
+    } else {
+      const newItemId = `${item.id}-${targetBarId}-${Date.now()}`;
+      const newItem: InventoryItem = {
         ...item,
         id: newItemId,
         barId: targetBarId,
         quantity: quantity
-      });
-      
-      setItems(updatedItems);
-      toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to another bar`);
-      setShowTransferDialog(false);
+      };
+      updatedItems.push(newItem);
     }
+    
+    setItems(updatedItems);
+    
+    toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Pool Bar" : "Rooftop Bar"}`);
+    setShowTransferDialog(false);
   };
 
   const confirmDelete = (item: InventoryItem) => {
@@ -165,7 +174,6 @@ const Inventory = () => {
     }
     
     if (selectedItem) {
-      // Filter out the item to delete
       setItems(items.filter(item => item.id !== selectedItem.id));
       toast.success(`${selectedItem.name} has been deleted`);
       setShowDeleteDialog(false);
@@ -187,7 +195,6 @@ const Inventory = () => {
       return;
     }
     
-    // Generate a simple ID for the new item
     const id = `item-${Date.now()}`;
     const itemToAdd: InventoryItem = {
       id,
@@ -201,10 +208,8 @@ const Inventory = () => {
 
   const handleSort = (field: "name" | "quantity" | "unitPrice") => {
     if (sortField === field) {
-      // Toggle direction if same field
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      // Set new field and default to ascending
       setSortField(field);
       setSortDirection("asc");
     }

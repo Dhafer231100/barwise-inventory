@@ -21,13 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data for bars
-const BARS = [
-  { id: "1", name: "Main Bar" },
-  { id: "2", name: "Pool Bar" },
-  { id: "3", name: "Rooftop Bar" },
-];
+import { barNames } from "@/data/mockInventoryData";
 
 interface TransferItemDialogProps {
   open: boolean;
@@ -45,17 +39,18 @@ export function TransferItemDialog({
   const { hasPermission } = useAuth();
   const [targetBarId, setTargetBarId] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(0);
-  const [availableBars, setAvailableBars] = useState<typeof BARS>([]);
+  const [availableBars, setAvailableBars] = useState<Array<{id: string, name: string}>>([]);
   const [error, setError] = useState<string>("");
 
-  // Reset form and filter available bars when item changes
+  // Reset form when item changes
   useEffect(() => {
     if (item) {
       // Reset quantity
       setQuantity(1);
       
-      // Filter out the current bar of the item
-      const filteredBars = BARS.filter(bar => bar.id !== item.barId);
+      // Get all bars except the current one
+      const allBars = Object.entries(barNames).map(([id, name]) => ({ id, name }));
+      const filteredBars = allBars.filter(bar => bar.id !== item.barId);
       setAvailableBars(filteredBars);
       
       // Set default target bar
@@ -105,11 +100,6 @@ export function TransferItemDialog({
     // Process transfer
     onTransfer(item, targetBarId, quantity);
   };
-  
-  const getBarName = (barId: string) => {
-    const bar = BARS.find(b => b.id === barId);
-    return bar ? bar.name : 'Unknown Bar';
-  };
 
   if (!item) return null;
 
@@ -126,7 +116,7 @@ export function TransferItemDialog({
         <div className="grid gap-4 py-4">
           <div>
             <p><strong>Item:</strong> {item.name}</p>
-            <p><strong>Current Location:</strong> {getBarName(item.barId)}</p>
+            <p><strong>Current Location:</strong> {barNames[item.barId]}</p>
             <p><strong>Available Quantity:</strong> {item.quantity} {item.unit}(s)</p>
           </div>
           
