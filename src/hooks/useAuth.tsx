@@ -19,6 +19,27 @@ const MOCK_USERS = [
     email: 'Manager@hotel.com',
     password: 'manager123',
     role: 'manager' as UserRole,
+  },
+  {
+    id: '2',
+    name: 'Dhafer Kallel',
+    email: 'Dhaferkallel@hotel.com',
+    password: '23112311',
+    role: 'manager' as UserRole,
+  },
+  {
+    id: '3',
+    name: 'John Bartender',
+    email: 'bartender@hotel.com',
+    password: 'bartender123',
+    role: 'bartender' as UserRole,
+  },
+  {
+    id: '4',
+    name: 'Sarah Inventory',
+    email: 'inventory@hotel.com',
+    password: 'inventory123',
+    role: 'inventory_staff' as UserRole,
   }
 ];
 
@@ -50,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const foundUser = MOCK_USERS.find(u => u.email === email && u.password === password);
+      const foundUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       
       if (!foundUser) {
         throw new Error('Invalid credentials');
