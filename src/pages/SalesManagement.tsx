@@ -47,6 +47,23 @@ const SalesManagement = () => {
   // Check permissions
   const canManageSales = hasPermission(['manager']);
 
+  // Load sales from localStorage on mount
+  useEffect(() => {
+    const savedSales = localStorage.getItem('hotelBarSales');
+    if (savedSales) {
+      try {
+        setSales(JSON.parse(savedSales));
+      } catch (error) {
+        console.error('Failed to parse saved sales:', error);
+      }
+    }
+  }, []);
+
+  // Save sales to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('hotelBarSales', JSON.stringify(sales));
+  }, [sales]);
+
   useEffect(() => {
     // Filter sales based on search term and bar filter
     let filtered = [...sales];
@@ -78,6 +95,7 @@ const SalesManagement = () => {
     }
     
     setSales([]);
+    localStorage.removeItem('hotelBarSales');
     toast.success("All sales have been reset");
   };
 
