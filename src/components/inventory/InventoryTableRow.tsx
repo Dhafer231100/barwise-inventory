@@ -69,7 +69,7 @@ export function InventoryTableRow({
           )}
         </div>
       </TableCell>
-      <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
+      <TableCell>{item.unitPrice.toFixed(2)} TND</TableCell>
       <TableCell>
         {isLowStock ? (
           <Badge variant="destructive">Low Stock</Badge>
