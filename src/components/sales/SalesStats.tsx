@@ -104,7 +104,7 @@ export function SalesStats({ sales }: SalesStatsProps) {
                     boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
                     border: "1px solid #eaeaea",
                   }}
-                  formatter={(value) => [`$${value}`, "Revenue"]}
+                  formatter={(value) => [`${value} TND`, "Revenue"]}
                 />
                 <Bar 
                   dataKey="value" 
@@ -175,7 +175,7 @@ export function SalesStats({ sales }: SalesStatsProps) {
                     boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
                     border: "1px solid #eaeaea",
                   }}
-                  formatter={(value) => [`$${value}`, "Revenue"]}
+                  formatter={(value) => [`${value} TND`, "Revenue"]}
                 />
                 <Legend />
               </PieChart>
@@ -194,7 +194,7 @@ export function SalesStats({ sales }: SalesStatsProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
             <div className="bg-muted/30 rounded-lg p-4 text-center">
               <h3 className="text-lg font-medium text-muted-foreground">Total Revenue</h3>
-              <p className="text-3xl font-bold">${totalRevenue.toFixed(2)}</p>
+              <p className="text-3xl font-bold">{totalRevenue.toFixed(2)} TND</p>
             </div>
             
             <div className="bg-muted/30 rounded-lg p-4 text-center">

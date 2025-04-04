@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,15 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Navigate } from "react-router-dom";
 import { barNames } from "@/data/mockInventoryData";
 
-// Initial sales data structure
 const initialSalesData = [
-  { name: "Mon", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Tue", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Wed", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Thu", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Fri", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Sat", Main: 0, Pool: 0, Lounge: 0 },
-  { name: "Sun", Main: 0, Pool: 0, Lounge: 0 },
+  { name: "Mon", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Tue", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Wed", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Thu", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Fri", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Sat", Main: 0, Economa: 0, Restaurant: 0 },
+  { name: "Sun", Main: 0, Economa: 0, Restaurant: 0 },
 ];
 
 const initialInventoryData = [
@@ -46,10 +44,9 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
   const [salesData, setSalesData] = useState(initialSalesData);
   const [inventoryData, setInventoryData] = useState(initialInventoryData);
+  const [economaValue, setEconomaValue] = useState(0);
 
-  // Load data and calculate stats on component mount
   useEffect(() => {
-    // Load inventory data
     const savedInventory = localStorage.getItem('hotelBarInventory');
     let inventoryItems: InventoryItem[] = [];
     
@@ -57,7 +54,6 @@ const Dashboard = () => {
       try {
         inventoryItems = JSON.parse(savedInventory);
         
-        // Update inventory data for chart
         const updatedInventoryData = [...initialInventoryData];
         inventoryItems.forEach(item => {
           const dataItem = updatedInventoryData.find(
@@ -69,12 +65,10 @@ const Dashboard = () => {
         });
         setInventoryData(updatedInventoryData);
         
-        // Count low stock items
         const lowStockCount = inventoryItems.filter(
           item => item.quantity < item.minimumLevel
         ).length;
         
-        // Check for expiring items
         const now = new Date();
         const threeDaysLater = new Date(now);
         threeDaysLater.setDate(now.getDate() + 3);
@@ -85,10 +79,14 @@ const Dashboard = () => {
           return expDate <= threeDaysLater && expDate >= now;
         }).length;
         
-        // Generate alerts
+        const economaTotalValue = inventoryItems
+          .filter(item => item.barId === "2")
+          .reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
+        
+        setEconomaValue(economaTotalValue);
+        
         const newAlerts: InventoryAlert[] = [];
         
-        // Low stock alerts
         inventoryItems
           .filter(item => item.quantity < item.minimumLevel)
           .forEach(item => {
@@ -104,7 +102,6 @@ const Dashboard = () => {
             });
           });
         
-        // Expiring soon alerts
         inventoryItems
           .filter(item => {
             if (!item.expirationDate) return false;
@@ -126,7 +123,6 @@ const Dashboard = () => {
         
         setAlerts(newAlerts);
         
-        // Update low stock and expiring stats
         setStats(prev => ({
           ...prev,
           lowStockItems: lowStockCount,
@@ -137,67 +133,53 @@ const Dashboard = () => {
       }
     }
     
-    // Load sales data
     const savedSales = localStorage.getItem('hotelBarSales');
     if (savedSales) {
       try {
         const sales: Sale[] = JSON.parse(savedSales);
         
-        // Calculate total sales amount
         const totalSalesAmount = sales.reduce((sum, sale) => sum + sale.total, 0);
         
-        // Count completed orders
         const ordersCount = sales.length;
         
-        // Update stats
         setStats(prev => ({
           ...prev,
           totalSales: totalSalesAmount,
           ordersCompleted: ordersCount
         }));
         
-        // Calculate sales data for chart
         const last7Days = getLastSevenDays();
         
-        // Create a structure to hold the sales data grouped by day and bar
         const salesByDayAndBar: Record<string, Record<string, number>> = {};
         
-        // Initialize all days with zero values for all bars
         last7Days.forEach(day => {
           salesByDayAndBar[day] = {
             Main: 0,
-            Pool: 0,
-            Lounge: 0
+            Economa: 0,
+            Restaurant: 0
           };
         });
         
-        // Fill in actual sales data
         sales.forEach(sale => {
           const saleDate = new Date(sale.date);
           const dayName = saleDate.toLocaleDateString('en-US', { weekday: 'short' });
           
-          // Only include sales from the last 7 days
-          if (last7Days.includes(dayName)) {
-            // Get the bar name or default to the bar ID
-            const barKey = sale.barName === "Main Bar" ? "Main" : 
-                          sale.barName === "Pool Bar" ? "Pool" : 
-                          sale.barName === "Rooftop Bar" ? "Lounge" : "Other";
+          const barKey = sale.barName === "Main Bar" ? "Main" : 
+                        sale.barName === "Pool Bar" || sale.barName === "Economa" ? "Economa" : 
+                        sale.barName === "Rooftop Bar" || sale.barName === "Lounge Bar" || sale.barName === "Restaurant" ? "Restaurant" : "Other";
             
-            if (barKey !== "Other") {
-              salesByDayAndBar[dayName][barKey] += sale.total;
-            }
+          if (barKey !== "Other") {
+            salesByDayAndBar[dayName][barKey] += sale.total;
           }
         });
         
-        // Convert the data to the format expected by the chart
         const chartData = Object.entries(salesByDayAndBar).map(([name, values]) => ({
           name,
           Main: values.Main,
-          Pool: values.Pool,
-          Lounge: values.Lounge
+          Economa: values.Economa,
+          Restaurant: values.Restaurant
         }));
         
-        // Sort the days of the week correctly
         const sortedChartData = sortDaysOfWeek(chartData);
         setSalesData(sortedChartData);
       } catch (error) {
@@ -206,7 +188,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Helper function to get the last seven days as short day names
   const getLastSevenDays = () => {
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -217,12 +198,67 @@ const Dashboard = () => {
     return days;
   };
 
-  // Helper function to sort days of the week in the correct order
   const sortDaysOfWeek = (data: any[]) => {
     const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return [...data].sort((a, b) => 
       dayOrder.indexOf(a.name) - dayOrder.indexOf(b.name)
     );
+  };
+
+  const handleResetStock = () => {
+    if (window.confirm("Are you sure you want to reset all stock to zero? This cannot be undone.")) {
+      const savedInventory = localStorage.getItem('hotelBarInventory');
+      if (savedInventory) {
+        try {
+          const inventoryItems: InventoryItem[] = JSON.parse(savedInventory);
+          
+          const resetInventory = inventoryItems.map(item => ({
+            ...item,
+            quantity: 0
+          }));
+          
+          localStorage.setItem('hotelBarInventory', JSON.stringify(resetInventory));
+          
+          setInventoryData(prevData => 
+            prevData.map(item => ({
+              ...item,
+              current: 0
+            }))
+          );
+          
+          const lowStockCount = resetInventory.filter(
+            item => item.minimumLevel > 0
+          ).length;
+          
+          setStats(prev => ({
+            ...prev,
+            lowStockItems: lowStockCount
+          }));
+          
+          setEconomaValue(0);
+          
+          const newAlerts: InventoryAlert[] = resetInventory
+            .filter(item => item.minimumLevel > 0)
+            .map(item => ({
+              id: `low_${item.id}`,
+              itemId: item.id,
+              itemName: item.name,
+              type: 'low_stock',
+              barId: item.barId,
+              barName: barNames[item.barId] || 'Unknown Bar',
+              message: `Low stock: 0 ${item.unit}(s) remaining (minimum: ${item.minimumLevel})`,
+              createdAt: new Date().toISOString()
+            }));
+            
+          setAlerts(newAlerts);
+          
+          alert("All stock has been reset to zero.");
+        } catch (error) {
+          console.error('Failed to reset inventory:', error);
+          alert("Failed to reset inventory.");
+        }
+      }
+    }
   };
 
   if (!isAuthenticated && !loading) {
@@ -232,17 +268,22 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="space-y-8 animate-slide-in">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Overview of your hotel bar operations
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-muted-foreground">
+              Overview of your hotel bar operations
+            </p>
+          </div>
+          <Button variant="destructive" onClick={handleResetStock}>
+            Reset All Stock
+          </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <StatsCard
             title="Total Sales"
-            value={`$${stats.totalSales.toLocaleString()}`}
+            value={`${stats.totalSales.toLocaleString()} TND`}
             description="All time"
             icon={DollarSign}
             trend={{ value: 5, isPositive: true }}
@@ -266,6 +307,13 @@ const Dashboard = () => {
             value={stats.expiringSoon}
             description="Next 3 days"
             icon={Clock}
+            trend={{ value: 0, isPositive: true }}
+          />
+          <StatsCard
+            title="Economa Value"
+            value={`${economaValue.toLocaleString()} TND`}
+            description="Total inventory value"
+            icon={DollarSign}
             trend={{ value: 0, isPositive: true }}
           />
         </div>
@@ -302,14 +350,14 @@ const Dashboard = () => {
                   />
                   <Area
                     type="monotone"
-                    dataKey="Pool"
+                    dataKey="Economa"
                     stackId="1"
                     stroke="#4ade80"
                     fill="#4ade8080"
                   />
                   <Area
                     type="monotone"
-                    dataKey="Lounge"
+                    dataKey="Restaurant"
                     stackId="1"
                     stroke="#f472b6"
                     fill="#f472b680"

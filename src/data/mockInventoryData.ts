@@ -127,6 +127,7 @@ export const mockInventoryItems: InventoryItem[] = [
 
 export const barNames: Record<string, string> = {
   "1": "Main Bar",
-  "2": "Pool Bar",
-  "3": "Lounge Bar",
+  "2": "Economa",
+  "3": "Restaurant",
 };
+
