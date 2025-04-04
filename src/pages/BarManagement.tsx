@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,7 +61,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
-// Mock menu items
 const mockMenuItems: MenuItem[] = [
   {
     id: "1",
@@ -172,7 +170,12 @@ const mockMenuItems: MenuItem[] = [
   },
 ];
 
-// Mock orders
+const barNames: Record<string, string> = {
+  "1": "Main Bar",
+  "2": "Economa",
+  "3": "Restaurant",
+};
+
 const mockOrders: Order[] = [
   {
     id: "1",
@@ -236,12 +239,6 @@ const mockOrders: Order[] = [
   },
 ];
 
-const barNames: Record<string, string> = {
-  "1": "Main Bar",
-  "2": "Pool Bar",
-  "3": "Lounge Bar",
-};
-
 const categoryIcons: Record<string, React.ReactNode> = {
   Cocktails: <GlassWater className="h-4 w-4" />,
   Classics: <Wine className="h-4 w-4" />,
@@ -264,7 +261,6 @@ const BarManagement = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Filter menu items based on search, category, and bar
   const filteredMenuItems = menuItems.filter((item) => {
     const matchesSearch = item.name
       .toLowerCase()
@@ -275,7 +271,6 @@ const BarManagement = () => {
     return matchesSearch && matchesCategory && matchesBar;
   });
 
-  // Filter orders based on search, status, and bar
   const filteredOrders = orders.filter((order) => {
     const matchesStatus =
       selectedOrderStatus === "all" || order.status === selectedOrderStatus;
@@ -283,7 +278,6 @@ const BarManagement = () => {
     return matchesStatus && matchesBar;
   });
 
-  // Get unique categories for filter
   const categories = Array.from(
     new Set(menuItems.map((item) => item.category))
   );
@@ -390,8 +384,8 @@ const BarManagement = () => {
                 <SelectContent>
                   <SelectItem value="all">All Bars</SelectItem>
                   <SelectItem value="1">Main Bar</SelectItem>
-                  <SelectItem value="2">Pool Bar</SelectItem>
-                  <SelectItem value="3">Lounge Bar</SelectItem>
+                  <SelectItem value="2">Economa</SelectItem>
+                  <SelectItem value="3">Restaurant</SelectItem>
                 </SelectContent>
               </Select>
             </div>
