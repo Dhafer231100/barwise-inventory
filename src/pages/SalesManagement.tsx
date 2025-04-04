@@ -219,8 +219,8 @@ const SalesManagement = () => {
                 <SelectContent>
                   <SelectItem value="all">All Bars</SelectItem>
                   <SelectItem value="1">Main Bar</SelectItem>
-                  <SelectItem value="2">Pool Bar</SelectItem>
-                  <SelectItem value="3">Rooftop Bar</SelectItem>
+                  <SelectItem value="2">Economa</SelectItem>
+                  <SelectItem value="3">Restaurant</SelectItem>
                 </SelectContent>
               </Select>
             </div>

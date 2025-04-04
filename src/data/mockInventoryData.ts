@@ -130,4 +130,3 @@ export const barNames: Record<string, string> = {
   "2": "Economa",
   "3": "Restaurant",
 };
-

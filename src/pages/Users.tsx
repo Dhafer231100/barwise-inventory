@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,8 +25,8 @@ import { Edit, Trash2, UserPlus, Shield } from "lucide-react";
 // Mock bar data
 const MOCK_BARS = [
   { id: '1', name: 'Main Bar', location: 'Lobby Floor' },
-  { id: '2', name: 'Pool Bar', location: 'Pool Area' },
-  { id: '3', name: 'Rooftop Bar', location: 'Roof Level' },
+  { id: '2', name: 'Economa', location: 'Pool Area' },
+  { id: '3', name: 'Restaurant', location: 'Roof Level' },
 ];
 
 export default function Users() {
