@@ -1,3 +1,4 @@
+
 export type UserRole = 'manager' | 'bartender' | 'inventory_staff';
 
 export interface User {
@@ -60,6 +61,18 @@ export interface Order {
   status: 'pending' | 'preparing' | 'completed' | 'cancelled';
   createdAt: string;
   completedAt?: string;
+}
+
+export interface TransferRecord {
+  id: string;
+  itemId: string;
+  itemName: string;
+  sourceBarId: string;
+  targetBarId: string;
+  quantity: number;
+  unit: string;
+  transferredBy: string;
+  date: string;
 }
 
 export interface Transaction {

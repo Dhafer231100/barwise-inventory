@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,8 +77,8 @@ const Reports = () => {
       const dayName = saleDate.toLocaleDateString('en-US', { weekday: 'short' });
       
       const barKey = sale.barName === "Main Bar" ? "Main" : 
-                        sale.barName === "Pool Bar" || sale.barName === "Economa" ? "Economa" : 
-                        sale.barName === "Rooftop Bar" || sale.barName === "Lounge Bar" || sale.barName === "Restaurant" ? "Restaurant" : "Other";
+                        sale.barName === "Economa" ? "Economa" : 
+                        sale.barName === "Restaurant" ? "Restaurant" : "Other";
         
       if (barKey !== "Other") {
         updatedSalesData[dayName][barKey] += sale.total;

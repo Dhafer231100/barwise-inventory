@@ -100,23 +100,7 @@ export function TransferItemDialog({
     // Process transfer
     onTransfer(item, targetBarId, quantity);
     
-    // Update the inventory in localStorage after transfer
-    setTimeout(() => {
-      // This timeout ensures the onTransfer callback has completed
-      // and updated the state before we save to localStorage
-      const savedInventory = localStorage.getItem('hotelBarInventory');
-      if (savedInventory) {
-        try {
-          const inventory = JSON.parse(savedInventory);
-          // The inventory is already updated in the parent component
-          // We just need to save it to localStorage here
-          localStorage.setItem('hotelBarInventory', JSON.stringify(inventory));
-        } catch (error) {
-          console.error('Failed to update inventory in localStorage:', error);
-        }
-      }
-    }, 100);
-    
+    // The handler will update localStorage for both inventory and transfers
     setOpen(false);
   };
 

@@ -1,7 +1,8 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { MenuItem, Order } from "@/utils/types";
+import { MenuItem, TransferRecord } from "@/utils/types";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { DashboardCard } from "@/components/Dashboard/DashboardCard";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -36,20 +30,17 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowUpDown,
-  BadgeCheck,
   Beer,
   ChevronDown,
-  Clock,
   Coffee,
   Edit,
   Filter,
   GlassWater,
   Plus,
-  RotateCcw,
   Search,
-  Timer,
+  Trash2,
   Wine,
-  X,
+  ArrowLeftRight,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,184 +51,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-
-const mockMenuItems: MenuItem[] = [
-  {
-    id: "1",
-    name: "Mojito",
-    category: "Cocktails",
-    price: 12.99,
-    ingredients: [
-      { itemId: "3", quantity: 0.1 },
-      { itemId: "7", quantity: 0.05 },
-      { itemId: "8", quantity: 0.03 },
-    ],
-    barId: "1",
-    available: true,
-  },
-  {
-    id: "2",
-    name: "Margarita",
-    category: "Cocktails",
-    price: 14.99,
-    ingredients: [
-      { itemId: "4", quantity: 0.1 },
-      { itemId: "7", quantity: 0.05 },
-      { itemId: "8", quantity: 0.03 },
-    ],
-    barId: "1",
-    available: true,
-  },
-  {
-    id: "3",
-    name: "Old Fashioned",
-    category: "Cocktails",
-    price: 16.99,
-    ingredients: [
-      { itemId: "5", quantity: 0.1 },
-      { itemId: "8", quantity: 0.02 },
-      { itemId: "10", quantity: 1 },
-    ],
-    barId: "1",
-    available: true,
-  },
-  {
-    id: "4",
-    name: "Gin & Tonic",
-    category: "Classics",
-    price: 10.99,
-    ingredients: [{ itemId: "2", quantity: 0.1 }],
-    barId: "1",
-    available: true,
-  },
-  {
-    id: "5",
-    name: "Vodka Soda",
-    category: "Classics",
-    price: 9.99,
-    ingredients: [{ itemId: "1", quantity: 0.1 }],
-    barId: "1",
-    available: true,
-  },
-  {
-    id: "6",
-    name: "Whiskey Sour",
-    category: "Cocktails",
-    price: 13.99,
-    ingredients: [
-      { itemId: "5", quantity: 0.1 },
-      { itemId: "7", quantity: 0.05 },
-      { itemId: "8", quantity: 0.03 },
-    ],
-    barId: "2",
-    available: true,
-  },
-  {
-    id: "7",
-    name: "Pina Colada",
-    category: "Tropical",
-    price: 15.99,
-    ingredients: [{ itemId: "3", quantity: 0.1 }],
-    barId: "2",
-    available: true,
-  },
-  {
-    id: "8",
-    name: "House Wine (Glass)",
-    category: "Wine",
-    price: 8.99,
-    ingredients: [{ itemId: "6", quantity: 0.175 }],
-    barId: "3",
-    available: true,
-  },
-  {
-    id: "9",
-    name: "Espresso Martini",
-    category: "Signature",
-    price: 17.99,
-    ingredients: [{ itemId: "1", quantity: 0.1 }],
-    barId: "3",
-    available: true,
-  },
-  {
-    id: "10",
-    name: "Negroni",
-    category: "Classics",
-    price: 16.99,
-    ingredients: [{ itemId: "2", quantity: 0.08 }],
-    barId: "3",
-    available: false,
-  },
-];
+import { TransferList } from "@/components/transfers/TransferList";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AddMenuItemDialog } from "@/components/menu/AddMenuItemDialog";
+import { toast } from "sonner";
 
 const barNames: Record<string, string> = {
   "1": "Main Bar",
   "2": "Economa",
   "3": "Restaurant",
 };
-
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    barId: "1",
-    customerName: "Table 12",
-    tableNumber: "12",
-    items: [
-      { menuItemId: "1", quantity: 2 },
-      { menuItemId: "4", quantity: 1 },
-    ],
-    totalPrice: 36.97,
-    status: "pending",
-    createdAt: new Date(Date.now() - 15 * 60000).toISOString(), // 15 min ago
-  },
-  {
-    id: "2",
-    barId: "1",
-    customerName: "Table 8",
-    tableNumber: "8",
-    items: [
-      { menuItemId: "2", quantity: 1 },
-      { menuItemId: "3", quantity: 1 },
-    ],
-    totalPrice: 31.98,
-    status: "preparing",
-    createdAt: new Date(Date.now() - 8 * 60000).toISOString(), // 8 min ago
-  },
-  {
-    id: "3",
-    barId: "2",
-    customerName: "Room 302",
-    items: [{ menuItemId: "7", quantity: 2 }],
-    totalPrice: 31.98,
-    status: "completed",
-    createdAt: new Date(Date.now() - 30 * 60000).toISOString(), // 30 min ago
-    completedAt: new Date(Date.now() - 15 * 60000).toISOString(), // 15 min ago
-  },
-  {
-    id: "4",
-    barId: "3",
-    customerName: "Table 3",
-    tableNumber: "3",
-    items: [
-      { menuItemId: "8", quantity: 2 },
-      { menuItemId: "9", quantity: 1 },
-    ],
-    totalPrice: 35.97,
-    status: "completed",
-    createdAt: new Date(Date.now() - 60 * 60000).toISOString(), // 60 min ago
-    completedAt: new Date(Date.now() - 45 * 60000).toISOString(), // 45 min ago
-  },
-  {
-    id: "5",
-    barId: "1",
-    customerName: "Table 15",
-    tableNumber: "15",
-    items: [{ menuItemId: "5", quantity: 4 }],
-    totalPrice: 39.96,
-    status: "cancelled",
-    createdAt: new Date(Date.now() - 120 * 60000).toISOString(), // 120 min ago
-  },
-];
 
 const categoryIcons: Record<string, React.ReactNode> = {
   Cocktails: <GlassWater className="h-4 w-4" />,
@@ -248,14 +71,31 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const BarManagement = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState("menu");
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems);
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedBar, setSelectedBar] = useState<string>("all");
-  const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>("all");
+  const [selectedTransferDirection, setSelectedTransferDirection] = useState<"all" | "incoming" | "outgoing">("all");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showResetMenuDialog, setShowResetMenuDialog] = useState(false);
+
+  // Load menu items from localStorage
+  useEffect(() => {
+    const savedMenuItems = localStorage.getItem('barMenuItems');
+    if (savedMenuItems) {
+      setMenuItems(JSON.parse(savedMenuItems));
+    } else {
+      setMenuItems([]);
+      localStorage.setItem('barMenuItems', JSON.stringify([]));
+    }
+  }, []);
+
+  // Save menu items whenever they change
+  useEffect(() => {
+    localStorage.setItem('barMenuItems', JSON.stringify(menuItems));
+  }, [menuItems]);
 
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
@@ -271,68 +111,49 @@ const BarManagement = () => {
     return matchesSearch && matchesCategory && matchesBar;
   });
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesStatus =
-      selectedOrderStatus === "all" || order.status === selectedOrderStatus;
-    const matchesBar = selectedBar === "all" || order.barId === selectedBar;
-    return matchesStatus && matchesBar;
-  });
-
   const categories = Array.from(
     new Set(menuItems.map((item) => item.category))
   );
 
-  const getOrderStatusBadge = (status: Order["status"]) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge variant="outline" className="border-amber-500 text-amber-700">
-            <Clock className="h-3 w-3 mr-1" /> Pending
-          </Badge>
-        );
-      case "preparing":
-        return (
-          <Badge variant="outline" className="border-blue-500 text-blue-700">
-            <Timer className="h-3 w-3 mr-1" /> Preparing
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge variant="outline" className="border-emerald-500 text-emerald-700">
-            <BadgeCheck className="h-3 w-3 mr-1" /> Completed
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge variant="outline" className="border-rose-500 text-rose-700">
-            <X className="h-3 w-3 mr-1" /> Cancelled
-          </Badge>
-        );
-      default:
-        return null;
+  const handleAddItem = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can add menu items");
+      return;
     }
+    setShowAddDialog(true);
   };
 
-  const timeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  
-    let interval = seconds / 31536000;
-    if (interval > 1) return Math.floor(interval) + " years ago";
-  
-    interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + " months ago";
-  
-    interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + " days ago";
-  
-    interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + " hours ago";
-  
-    interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + " minutes ago";
-  
-    return Math.floor(seconds) + " seconds ago";
+  const handleAddNewItem = (newItem: Omit<MenuItem, 'id'>) => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can add menu items");
+      return;
+    }
+    
+    const id = `menu-${Date.now()}`;
+    const itemToAdd: MenuItem = {
+      id,
+      ...newItem
+    };
+    
+    const updatedItems = [...menuItems, itemToAdd];
+    setMenuItems(updatedItems);
+    toast.success(`${newItem.name} has been added to the menu`);
+    setShowAddDialog(false);
+  };
+
+  const handleResetMenu = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can reset the menu");
+      return;
+    }
+    setShowResetMenuDialog(true);
+  };
+
+  const confirmResetMenu = () => {
+    setMenuItems([]);
+    localStorage.setItem('barMenuItems', JSON.stringify([]));
+    setShowResetMenuDialog(false);
+    toast.success("All menu items have been deleted");
   };
 
   return (
@@ -344,19 +165,25 @@ const BarManagement = () => {
               Bar Management
             </h2>
             <p className="text-muted-foreground">
-              Manage your menu and orders across all bars
+              Manage your menu and transfers across all bars
             </p>
           </div>
           <div className="flex gap-2">
             {activeTab === "menu" && (
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" /> Add Menu Item
-              </Button>
-            )}
-            {activeTab === "orders" && (
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" /> New Order
-              </Button>
+              <>
+                {hasPermission(['manager']) && (
+                  <Button 
+                    variant="destructive" 
+                    className="flex items-center gap-2"
+                    onClick={handleResetMenu}
+                  >
+                    <Trash2 className="h-4 w-4" /> Reset Menu
+                  </Button>
+                )}
+                <Button className="flex items-center gap-2" onClick={handleAddItem}>
+                  <Plus className="h-4 w-4" /> Add Menu Item
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -370,7 +197,7 @@ const BarManagement = () => {
           <div className="flex justify-between items-center">
             <TabsList>
               <TabsTrigger value="menu">Menu</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
+              <TabsTrigger value="transfers">Transfers</TabsTrigger>
             </TabsList>
 
             <div className="flex gap-2">
@@ -482,7 +309,7 @@ const BarManagement = () => {
                           </TableCell>
                           <TableCell>{item.category}</TableCell>
                           <TableCell>{barNames[item.barId]}</TableCell>
-                          <TableCell>${item.price.toFixed(2)}</TableCell>
+                          <TableCell>{item.price.toFixed(2)} TND</TableCell>
                           <TableCell>
                             {item.available ? (
                               <Badge variant="outline" className="border-emerald-500 text-emerald-700">
@@ -529,122 +356,65 @@ const BarManagement = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="orders" className="space-y-4">
+          <TabsContent value="transfers" className="space-y-4">
             <Card className="p-4">
               <div className="flex flex-col md:flex-row gap-4 md:items-center mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search orders..."
-                    className="pl-8"
-                  />
-                </div>
-                <div className="flex">
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                  <ArrowLeftRight className="h-5 w-5" />
+                  Inventory Transfers
+                </h3>
+                
+                <div className="ml-auto flex gap-2">
                   <Select
-                    value={selectedOrderStatus}
-                    onValueChange={setSelectedOrderStatus}
+                    value={selectedTransferDirection}
+                    onValueChange={(value: "all" | "incoming" | "outgoing") => setSelectedTransferDirection(value)}
                   >
                     <SelectTrigger className="w-[180px]">
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder="Direction" />
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="preparing">Preparing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="all">All Transfers</SelectItem>
+                      <SelectItem value="incoming">Incoming</SelectItem>
+                      <SelectItem value="outgoing">Outgoing</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Bar</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
-                          No orders found.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            #{order.id}
-                          </TableCell>
-                          <TableCell>{order.customerName}</TableCell>
-                          <TableCell>{barNames[order.barId]}</TableCell>
-                          <TableCell>{timeAgo(order.createdAt)}</TableCell>
-                          <TableCell>
-                            {order.items.reduce(
-                              (sum, item) => sum + item.quantity,
-                              0
-                            )}{" "}
-                            items
-                          </TableCell>
-                          <TableCell>${order.totalPrice.toFixed(2)}</TableCell>
-                          <TableCell>
-                            {getOrderStatusBadge(order.status)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                {order.status === "pending" && (
-                                  <DropdownMenuItem>
-                                    Mark Preparing
-                                  </DropdownMenuItem>
-                                )}
-                                {order.status === "preparing" && (
-                                  <DropdownMenuItem>
-                                    Mark Completed
-                                  </DropdownMenuItem>
-                                )}
-                                {(order.status === "pending" ||
-                                  order.status === "preparing") && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Cancel Order
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+              <TransferList 
+                filterBarId={selectedBar} 
+                filterDirection={selectedTransferDirection} 
+              />
             </Card>
           </TabsContent>
         </Tabs>
       </div>
+      
+      <AddMenuItemDialog
+        open={showAddDialog}
+        setOpen={setShowAddDialog}
+        onAdd={handleAddNewItem}
+      />
+      
+      <AlertDialog open={showResetMenuDialog} onOpenChange={setShowResetMenuDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Menu</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete ALL menu items across all bars. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmResetMenu} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

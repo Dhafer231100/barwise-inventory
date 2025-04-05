@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { InventoryItem } from "@/utils/types";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryFilters } from "@/components/inventory/InventoryFilters";
@@ -15,9 +15,10 @@ import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { mockInventoryItems } from "@/data/mockInventoryData";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { TransferItemDialog } from "@/components/inventory/TransferItemDialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Inventory = () => {
-  const { isAuthenticated, loading, hasPermission } = useAuth();
+  const { isAuthenticated, loading, hasPermission, user } = useAuth();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -27,27 +28,24 @@ const Inventory = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Load saved inventory items from localStorage on component mount
   useEffect(() => {
-    const savedItems = localStorage.getItem('inventoryItems');
+    const savedItems = localStorage.getItem('hotelBarInventory');
     if (savedItems) {
       setItems(JSON.parse(savedItems));
     } else {
-      // If no saved items, use mock data
-      setItems(mockInventoryItems);
-      // Save mock data to localStorage
-      localStorage.setItem('inventoryItems', JSON.stringify(mockInventoryItems));
+      setItems([]);
+      localStorage.setItem('hotelBarInventory', JSON.stringify([]));
     }
   }, []);
 
   // Save items to localStorage whenever they change
   useEffect(() => {
-    if (items.length > 0) {
-      localStorage.setItem('inventoryItems', JSON.stringify(items));
-    }
+    localStorage.setItem('hotelBarInventory', JSON.stringify(items));
   }, [items]);
 
   if (!isAuthenticated && !loading) {
@@ -117,9 +115,24 @@ const Inventory = () => {
       item.id === updatedItem.id ? updatedItem : item
     );
     setItems(updatedItems);
-    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     toast.success(`${updatedItem.name} has been updated`);
     setShowEditDialog(false);
+  };
+
+  const handleResetInventory = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can reset inventory");
+      return;
+    }
+    
+    setShowResetDialog(true);
+  };
+  
+  const confirmResetInventory = () => {
+    setItems([]);
+    localStorage.setItem('hotelBarInventory', JSON.stringify([]));
+    toast.success("All inventory items have been deleted");
+    setShowResetDialog(false);
   };
 
   const handleTransferItem = (item: InventoryItem) => {
@@ -174,10 +187,29 @@ const Inventory = () => {
       updatedItems.push(newItem);
     }
     
-    setItems(updatedItems);
-    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
+    // Create a transfer record
+    const transferId = `transfer-${Date.now()}`;
+    const transferRecord = {
+      id: transferId,
+      itemId: item.id,
+      itemName: item.name,
+      sourceBarId: item.barId,
+      targetBarId,
+      quantity,
+      unit: item.unit,
+      transferredBy: user?.name || 'Unknown',
+      date: new Date().toISOString()
+    };
     
-    toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Pool Bar" : "Rooftop Bar"}`);
+    // Save transfer record to localStorage
+    const savedTransfers = localStorage.getItem('barTransferRecords') || '[]';
+    const transfers = JSON.parse(savedTransfers);
+    transfers.push(transferRecord);
+    localStorage.setItem('barTransferRecords', JSON.stringify(transfers));
+    
+    setItems(updatedItems);
+    
+    toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Economa" : "Restaurant"}`);
     setShowTransferDialog(false);
   };
 
@@ -200,7 +232,6 @@ const Inventory = () => {
     if (selectedItem) {
       const updatedItems = items.filter(item => item.id !== selectedItem.id);
       setItems(updatedItems);
-      localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
       toast.success(`${selectedItem.name} has been deleted`);
       setShowDeleteDialog(false);
       setSelectedItem(null);
@@ -229,7 +260,6 @@ const Inventory = () => {
     
     const updatedItems = [...items, itemToAdd];
     setItems(updatedItems);
-    localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
     toast.success(`${newItem.name} has been added to inventory`);
     setShowAddDialog(false);
   };
@@ -253,13 +283,24 @@ const Inventory = () => {
               Manage your bar inventory across all locations
             </p>
           </div>
-          <Button 
-            className="flex items-center gap-2" 
-            onClick={handleAddItem}
-            disabled={!hasPermission(['manager'])}
-          >
-            <Plus className="h-4 w-4" /> Add Item
-          </Button>
+          <div className="flex space-x-2">
+            {hasPermission(['manager']) && (
+              <Button 
+                className="flex items-center gap-2" 
+                variant="destructive"
+                onClick={handleResetInventory}
+              >
+                <Trash2 className="h-4 w-4" /> Reset All
+              </Button>
+            )}
+            <Button 
+              className="flex items-center gap-2" 
+              onClick={handleAddItem}
+              disabled={!hasPermission(['manager'])}
+            >
+              <Plus className="h-4 w-4" /> Add Item
+            </Button>
+          </div>
         </div>
 
         <Card className="p-4">
@@ -312,6 +353,23 @@ const Inventory = () => {
         item={selectedItem}
         onTransfer={handleSaveTransfer}
       />
+
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Inventory</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete ALL inventory items across all bars. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmResetInventory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
