@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,7 +38,6 @@ const Reports = () => {
     Sun: { Main: 0, Economa: 0, Restaurant: 0 },
   });
 
-  // Update any bar name references in selectors or display
   const barNames = {
     "1": "Main Bar",
     "2": "Economa",
@@ -59,7 +57,6 @@ const Reports = () => {
   }, []);
 
   useEffect(() => {
-    // Reset sales data
     const initialSalesData = {
       Mon: { Main: 0, Economa: 0, Restaurant: 0 },
       Tue: { Main: 0, Economa: 0, Restaurant: 0 },
@@ -70,7 +67,6 @@ const Reports = () => {
       Sun: { Main: 0, Economa: 0, Restaurant: 0 },
     };
     
-    // Aggregate sales data
     const updatedSalesData = { ...initialSalesData };
     sales.forEach(sale => {
       const saleDate = new Date(sale.date);

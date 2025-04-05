@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,7 +28,6 @@ import { SalesStats } from "@/components/sales/SalesStats";
 import { Sale } from "@/utils/types";
 import { PlusCircle, Pencil, Trash2, BarChart3, RefreshCcw } from "lucide-react";
 
-// Empty sales data array (reset all sales)
 const MOCK_SALES: Sale[] = [];
 
 const SalesManagement = () => {
@@ -44,10 +42,8 @@ const SalesManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
-  // Check permissions
   const canManageSales = hasPermission(['manager']);
 
-  // Load sales from localStorage on mount
   useEffect(() => {
     const savedSales = localStorage.getItem('hotelBarSales');
     if (savedSales) {
@@ -59,13 +55,11 @@ const SalesManagement = () => {
     }
   }, []);
 
-  // Save sales to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('hotelBarSales', JSON.stringify(sales));
   }, [sales]);
 
   useEffect(() => {
-    // Filter sales based on search term and bar filter
     let filtered = [...sales];
     
     if (searchTerm) {
@@ -82,12 +76,10 @@ const SalesManagement = () => {
     setFilteredSales(filtered);
   }, [sales, searchTerm, barFilter]);
 
-  // Check authentication
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
   }
 
-  // Reset all sales data
   const handleResetSales = () => {
     if (!canManageSales) {
       toast.error("Only managers can reset sales");
@@ -99,7 +91,6 @@ const SalesManagement = () => {
     toast.success("All sales have been reset");
   };
 
-  // Handler for adding a new sale
   const handleAddSale = (sale: Omit<Sale, 'id'>) => {
     if (!canManageSales) {
       toast.error("Only managers can add sales");
@@ -117,7 +108,6 @@ const SalesManagement = () => {
     setIsAddDialogOpen(false);
   };
 
-  // Handler for editing a sale
   const handleEditSale = (updatedSale: Sale) => {
     if (!canManageSales) {
       toast.error("Only managers can edit sales");
@@ -134,7 +124,6 @@ const SalesManagement = () => {
     setIsEditDialogOpen(false);
   };
 
-  // Handler for deleting a sale
   const handleDeleteSale = (id: string) => {
     if (!canManageSales) {
       toast.error("Only managers can delete sales");
@@ -146,7 +135,6 @@ const SalesManagement = () => {
     setIsDeleteDialogOpen(false);
   };
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -294,7 +282,6 @@ const SalesManagement = () => {
         </div>
       </div>
 
-      {/* Dialogs */}
       <AddSaleDialog
         open={isAddDialogOpen}
         setOpen={setIsAddDialogOpen}

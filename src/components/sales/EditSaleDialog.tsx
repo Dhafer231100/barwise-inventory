@@ -30,6 +30,18 @@ const BARS = [
   { id: "3", name: "Restaurant" },
 ];
 
+// Mock data for updated products to match AddSaleDialog
+const PRODUCTS = [
+  { id: "1", name: "Mojito", price: 12.99 },
+  { id: "2", name: "Margarita", price: 14.99 },
+  { id: "3", name: "Gin & Tonic", price: 11.99 },
+  { id: "4", name: "Aperol Spritz", price: 13.99 },
+  { id: "5", name: "Negroni", price: 15.99 },
+  { id: "6", name: "Old Fashioned", price: 16.99 },
+  { id: "7", name: "Espresso Martini", price: 15.99 },
+  { id: "8", name: "Piña Colada", price: 13.99 },
+];
+
 // Mock data for staff
 const STAFF = [
   { id: "1", name: "John Doe" },
