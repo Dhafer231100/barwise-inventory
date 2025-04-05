@@ -21,12 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { barNames } from "@/data/mockInventoryData";
 
-// Mock data for bars
+// Mock data for bars - updated with consistent naming
 const BARS = [
   { id: "1", name: "Main Bar" },
-  { id: "2", name: "Pool Bar" },
-  { id: "3", name: "Rooftop Bar" },
+  { id: "2", name: "Economa" },
+  { id: "3", name: "Restaurant" },
 ];
 
 // Mock data for staff
@@ -119,9 +120,8 @@ export function EditSaleDialog({
       return;
     }
     
-    // Get bar name
-    const bar = BARS.find(b => b.id === barId);
-    const barName = bar ? bar.name : "Unknown Bar";
+    // Get bar name from the centralized barNames object
+    const barName = barNames[barId] || "Unknown Bar";
     
     // Process edit sale
     onEditSale({
