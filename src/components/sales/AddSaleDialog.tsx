@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { Sale } from "@/utils/types";
+import { Sale, InventoryItem } from "@/utils/types";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -30,25 +30,6 @@ const BARS = [
   { id: "3", name: "Restaurant" },
 ];
 
-// Mock data for products - updated with more relevant drinks and consistent pricing
-const PRODUCTS = [
-  { id: "1", name: "Mojito", price: 12.99 },
-  { id: "2", name: "Margarita", price: 14.99 },
-  { id: "3", name: "Gin & Tonic", price: 11.99 },
-  { id: "4", name: "Aperol Spritz", price: 13.99 },
-  { id: "5", name: "Negroni", price: 15.99 },
-  { id: "6", name: "Old Fashioned", price: 16.99 },
-  { id: "7", name: "Espresso Martini", price: 15.99 },
-  { id: "8", name: "Piña Colada", price: 13.99 },
-];
-
-// Mock data for staff
-const STAFF = [
-  { id: "1", name: "John Doe" },
-  { id: "2", name: "Jane Smith" },
-  { id: "3", name: "Mike Johnson" },
-];
-
 interface AddSaleDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -62,12 +43,27 @@ export function AddSaleDialog({
 }: AddSaleDialogProps) {
   const { hasPermission } = useAuth();
   const [barId, setBarId] = useState<string>("");
-  const [productId, setProductId] = useState<string>("");
-  const [staffId, setStaffId] = useState<string>("");
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
+  const [itemId, setItemId] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [price, setPrice] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string>("");
+
+  // Load inventory items from localStorage
+  useEffect(() => {
+    const savedItems = localStorage.getItem('hotelBarInventory');
+    if (savedItems) {
+      try {
+        const parsedItems = JSON.parse(savedItems);
+        setInventoryItems(parsedItems);
+      } catch (error) {
+        console.error('Failed to parse inventory items:', error);
+        setInventoryItems([]);
+      }
+    }
+  }, []);
 
   // Check permission
   useEffect(() => {
@@ -81,8 +77,7 @@ export function AddSaleDialog({
   useEffect(() => {
     if (open) {
       setBarId("");
-      setProductId("");
-      setStaffId("");
+      setItemId("");
       setQuantity(1);
       setPrice(0);
       setTotal(0);
@@ -90,16 +85,27 @@ export function AddSaleDialog({
     }
   }, [open]);
 
-  // Update price and total when product changes
+  // Filter items based on selected bar
   useEffect(() => {
-    if (productId) {
-      const product = PRODUCTS.find(p => p.id === productId);
-      if (product) {
-        setPrice(product.price);
-        setTotal(product.price * quantity);
+    if (barId) {
+      const items = inventoryItems.filter(item => item.barId === barId && item.quantity > 0);
+      setFilteredItems(items);
+      setItemId("");
+    } else {
+      setFilteredItems([]);
+    }
+  }, [barId, inventoryItems]);
+
+  // Update price and total when item changes
+  useEffect(() => {
+    if (itemId) {
+      const item = inventoryItems.find(item => item.id === itemId);
+      if (item) {
+        setPrice(item.unitPrice);
+        setTotal(item.unitPrice * quantity);
       }
     }
-  }, [productId, quantity]);
+  }, [itemId, quantity, inventoryItems]);
 
   // Update total when quantity changes
   useEffect(() => {
@@ -119,13 +125,8 @@ export function AddSaleDialog({
       return;
     }
     
-    if (!productId) {
+    if (!itemId) {
       setError("Please select a product");
-      return;
-    }
-    
-    if (!staffId) {
-      setError("Please select a staff member");
       return;
     }
     
@@ -138,12 +139,8 @@ export function AddSaleDialog({
     const barName = barNames[barId] || "Unknown Bar";
     
     // Get product name
-    const product = PRODUCTS.find(p => p.id === productId);
-    const productName = product ? product.name : "Unknown Product";
-    
-    // Get staff name
-    const staff = STAFF.find(s => s.id === staffId);
-    const staffName = staff ? staff.name : "Unknown Staff";
+    const item = inventoryItems.find(item => item.id === itemId);
+    const productName = item ? item.name : "Unknown Product";
     
     // Process add sale
     onAddSale({
@@ -154,8 +151,23 @@ export function AddSaleDialog({
       quantity,
       total,
       date: new Date().toISOString(),
-      staffName
+      staffName: "System" // Default value instead of user selection
     });
+    
+    // Update inventory quantity
+    if (item) {
+      const updatedItems = inventoryItems.map(invItem => {
+        if (invItem.id === itemId) {
+          return {
+            ...invItem,
+            quantity: Math.max(0, invItem.quantity - quantity)
+          };
+        }
+        return invItem;
+      });
+      
+      localStorage.setItem('hotelBarInventory', JSON.stringify(updatedItems));
+    }
   };
 
   return (
@@ -191,37 +203,23 @@ export function AddSaleDialog({
           <div className="space-y-2">
             <Label htmlFor="product">Product</Label>
             <Select 
-              value={productId} 
-              onValueChange={setProductId}
+              value={itemId} 
+              onValueChange={setItemId}
+              disabled={!barId || filteredItems.length === 0}
             >
               <SelectTrigger id="product">
-                <SelectValue placeholder="Select a product" />
+                <SelectValue placeholder={filteredItems.length ? "Select a product" : "No products available"} />
               </SelectTrigger>
               <SelectContent>
-                {PRODUCTS.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name} (${product.price.toFixed(2)})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="staff">Staff Member</Label>
-            <Select 
-              value={staffId} 
-              onValueChange={setStaffId}
-            >
-              <SelectTrigger id="staff">
-                <SelectValue placeholder="Select a staff member" />
-              </SelectTrigger>
-              <SelectContent>
-                {STAFF.map((staff) => (
-                  <SelectItem key={staff.id} value={staff.id}>
-                    {staff.name}
-                  </SelectItem>
-                ))}
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name} (${item.unitPrice.toFixed(2)}) - {item.quantity} {item.unit}(s) left
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>No products available</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -233,7 +231,18 @@ export function AddSaleDialog({
               type="number"
               min="1"
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onChange={(e) => {
+                const newQuantity = Number(e.target.value);
+                const selectedItem = inventoryItems.find(item => item.id === itemId);
+                
+                if (selectedItem && newQuantity > selectedItem.quantity) {
+                  setError(`Only ${selectedItem.quantity} ${selectedItem.unit}(s) available`);
+                  setQuantity(selectedItem.quantity);
+                } else {
+                  setError("");
+                  setQuantity(newQuantity);
+                }
+              }}
             />
           </div>
           
