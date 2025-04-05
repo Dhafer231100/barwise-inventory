@@ -31,8 +31,8 @@ const SUPPLIERS = [
 
 const BARS = [
   { id: "1", name: "Main Bar" },
-  { id: "2", name: "Pool Bar" },
-  { id: "3", name: "Rooftop Bar" },
+  { id: "2", name: "Economa" },
+  { id: "3", name: "Restaurant" },
 ];
 
 const CATEGORIES = [
