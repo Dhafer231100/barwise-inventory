@@ -78,7 +78,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     category: "Spirits",
     quantity: 0,
     unit: "Bottle",
-    unitPrice: 0,
+    unitPrice: "",
     barId: "1",
     supplierId: "1",
     minimumLevel: 5,
@@ -98,7 +98,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
       newErrors.quantity = "Quantity must be greater than 0";
     }
 
-    if (newItem.unitPrice <= 0) {
+    if (!newItem.unitPrice || parseFloat(newItem.unitPrice.toString()) <= 0) {
       newErrors.unitPrice = "Price must be greater than 0";
     }
 
@@ -122,7 +122,12 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     }
 
     if (validateForm()) {
-      onAdd(newItem);
+      // Convert unitPrice from string to number before submitting
+      const itemToSubmit = {
+        ...newItem,
+        unitPrice: parseFloat(newItem.unitPrice.toString())
+      };
+      onAdd(itemToSubmit);
     }
   };
 
@@ -151,7 +156,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
       category: "Spirits",
       quantity: 0,
       unit: "Bottle",
-      unitPrice: 0,
+      unitPrice: "",
       barId: "1",
       supplierId: "1",
       minimumLevel: 5,
@@ -263,7 +268,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="unitPrice" className="mb-2 block">
-                Price per Unit ($)
+                Price per Unit (TND)
               </Label>
               <Input
                 id="unitPrice"
@@ -271,8 +276,9 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
                 min="0"
                 step="0.01"
                 value={newItem.unitPrice}
-                onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
+                onChange={(e) => handleChange("unitPrice", e.target.value)}
                 className={errors.unitPrice ? "border-destructive" : ""}
+                placeholder="Enter price"
               />
               {errors.unitPrice && (
                 <p className="text-destructive text-sm mt-1">{errors.unitPrice}</p>
