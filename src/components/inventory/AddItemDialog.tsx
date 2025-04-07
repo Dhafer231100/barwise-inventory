@@ -21,6 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  RadioGroup,
+  RadioGroupItem
+} from "@/components/ui/radio-group";
 
 // Mock data for suppliers and bars
 const SUPPLIERS = [
@@ -42,7 +46,23 @@ const CATEGORIES = [
   "Mixers",
   "Garnishes",
   "Glassware",
-  "Other"
+  "Other",
+  "Patisserie",
+  "Resto",
+  "Bar"
+];
+
+const UNITS = [
+  "kg",
+  "L",
+  "Pcs",
+  "Bottle"
+];
+
+const TAX_RATES = [
+  { value: "0", label: "0%" },
+  { value: "7", label: "7%" },
+  { value: "19", label: "19%" }
 ];
 
 interface AddItemDialogProps {
@@ -57,11 +77,12 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     name: "",
     category: "Spirits",
     quantity: 0,
-    unit: "bottle",
+    unit: "Bottle",
     unitPrice: 0,
     barId: "1",
     supplierId: "1",
     minimumLevel: 5,
+    taxRate: 19,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -129,11 +150,12 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
       name: "",
       category: "Spirits",
       quantity: 0,
-      unit: "bottle",
+      unit: "Bottle",
       unitPrice: 0,
       barId: "1",
       supplierId: "1",
       minimumLevel: 5,
+      taxRate: 19,
     });
     setErrors({});
   };
@@ -217,13 +239,21 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
               <Label htmlFor="unit" className="mb-2 block">
                 Unit
               </Label>
-              <Input
-                id="unit"
+              <Select
                 value={newItem.unit}
-                onChange={(e) => handleChange("unit", e.target.value)}
-                className={errors.unit ? "border-destructive" : ""}
-                placeholder="bottle, case, kg, etc."
-              />
+                onValueChange={(value) => handleChange("unit", value)}
+              >
+                <SelectTrigger className={errors.unit ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {UNITS.map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.unit && (
                 <p className="text-destructive text-sm mt-1">{errors.unit}</p>
               )}
@@ -309,6 +339,24 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label className="mb-2 block">
+              Tax Rate
+            </Label>
+            <RadioGroup 
+              defaultValue={newItem.taxRate.toString()}
+              className="flex space-x-4"
+              onValueChange={(value) => handleChange("taxRate", Number(value))}
+            >
+              {TAX_RATES.map((rate) => (
+                <div key={rate.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={rate.value} id={`tax-${rate.value}`} />
+                  <Label htmlFor={`tax-${rate.value}`}>{rate.label}</Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
         </div>
 

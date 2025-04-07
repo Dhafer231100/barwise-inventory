@@ -1,4 +1,3 @@
-
 export type UserRole = 'manager' | 'bartender' | 'inventory_staff';
 
 export interface User {
@@ -28,6 +27,7 @@ export interface InventoryItem {
   expirationDate?: string;
   minimumLevel: number;
   image?: string;
+  taxRate?: number;
 }
 
 export interface Supplier {

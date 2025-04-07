@@ -255,7 +255,8 @@ const Inventory = () => {
     const id = `item-${Date.now()}`;
     const itemToAdd: InventoryItem = {
       id,
-      ...newItem
+      ...newItem,
+      taxRate: newItem.taxRate || 19, // Default to 19% if not specified
     };
     
     const updatedItems = [...items, itemToAdd];
