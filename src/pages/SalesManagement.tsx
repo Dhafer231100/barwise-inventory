@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +26,7 @@ import { AddSaleDialog } from "@/components/sales/AddSaleDialog";
 import { EditSaleDialog } from "@/components/sales/EditSaleDialog";
 import { DeleteSaleDialog } from "@/components/sales/DeleteSaleDialog";
 import { SalesStats } from "@/components/sales/SalesStats";
-import { Sale } from "@/utils/types";
+import { Sale, InventoryItem } from "@/utils/types";
 import { PlusCircle, Pencil, Trash2, BarChart3, RefreshCcw } from "lucide-react";
 
 const MOCK_SALES: Sale[] = [];
@@ -97,10 +98,33 @@ const SalesManagement = () => {
       return;
     }
     
+    // Get inventory to find the tax rate
+    const savedInventory = localStorage.getItem('hotelBarInventory');
+    let taxRate = 0;
+    
+    if (savedInventory) {
+      try {
+        const inventoryItems: InventoryItem[] = JSON.parse(savedInventory);
+        const product = inventoryItems.find(item => 
+          item.name.toLowerCase() === sale.productName.toLowerCase() && 
+          item.barId === sale.barId
+        );
+        
+        taxRate = product?.taxRate || 0;
+      } catch (error) {
+        console.error('Failed to get tax rate:', error);
+      }
+    }
+    
+    // Calculate total with tax
+    const taxMultiplier = 1 + (taxRate / 100);
+    const priceWithTax = sale.amount * taxMultiplier;
+    const total = priceWithTax * sale.quantity;
+    
     const newSale: Sale = {
       ...sale,
       id: (sales.length + 1).toString(),
-      total: sale.amount * sale.quantity
+      total: total
     };
     
     setSales(prev => [newSale, ...prev]);
@@ -114,9 +138,32 @@ const SalesManagement = () => {
       return;
     }
     
+    // Get inventory to find the tax rate
+    const savedInventory = localStorage.getItem('hotelBarInventory');
+    let taxRate = 0;
+    
+    if (savedInventory) {
+      try {
+        const inventoryItems: InventoryItem[] = JSON.parse(savedInventory);
+        const product = inventoryItems.find(item => 
+          item.name.toLowerCase() === updatedSale.productName.toLowerCase() && 
+          item.barId === updatedSale.barId
+        );
+        
+        taxRate = product?.taxRate || 0;
+      } catch (error) {
+        console.error('Failed to get tax rate:', error);
+      }
+    }
+    
+    // Calculate total with tax
+    const taxMultiplier = 1 + (taxRate / 100);
+    const priceWithTax = updatedSale.amount * taxMultiplier;
+    const total = priceWithTax * updatedSale.quantity;
+    
     setSales(prev => 
       prev.map(sale => sale.id === updatedSale.id ? 
-        { ...updatedSale, total: updatedSale.amount * updatedSale.quantity } : 
+        { ...updatedSale, total: total } : 
         sale
       )
     );

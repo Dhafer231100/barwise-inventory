@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -81,7 +82,10 @@ const Dashboard = () => {
         
         const economaTotalValue = inventoryItems
           .filter(item => item.barId === "2")
-          .reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
+          .reduce((total, item) => {
+            const taxMultiplier = 1 + ((item.taxRate || 0) / 100);
+            return total + (item.quantity * item.unitPrice * taxMultiplier);
+          }, 0);
         
         setEconomaValue(economaTotalValue);
         

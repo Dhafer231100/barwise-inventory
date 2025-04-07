@@ -11,18 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Sale {
-  id: string;
-  productName: string;
-  barName: string;
-  amount: number;
-  quantity: number;
-  total: number;
-  date: string;
-  staffName: string;
-  barId: string;
-}
+import { Sale } from "@/utils/types";
 
 const Reports = () => {
   const { isAuthenticated, loading } = useAuth();
