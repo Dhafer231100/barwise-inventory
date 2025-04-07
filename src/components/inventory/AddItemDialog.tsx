@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +24,8 @@ import {
   RadioGroup,
   RadioGroupItem
 } from "@/components/ui/radio-group";
+import { itemFormSchema } from "./schemas/itemFormSchema";
 
-// Mock data for suppliers and bars
 const SUPPLIERS = [
   { id: "1", name: "Premium Liquors" },
   { id: "2", name: "Craft Spirits Inc." },
@@ -78,7 +77,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     category: "Spirits",
     quantity: 0,
     unit: "Bottle",
-    unitPrice: "",
+    unitPrice: 0,
     barId: "1",
     supplierId: "1",
     minimumLevel: 5,
@@ -122,12 +121,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     }
 
     if (validateForm()) {
-      // Convert unitPrice from string to number before submitting
-      const itemToSubmit = {
-        ...newItem,
-        unitPrice: parseFloat(newItem.unitPrice.toString())
-      };
-      onAdd(itemToSubmit);
+      onAdd(newItem);
     }
   };
 
@@ -135,12 +129,18 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
     field: keyof Omit<InventoryItem, "id">,
     value: string | number
   ) => {
-    setNewItem((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    if (field === "unitPrice") {
+      setNewItem((prev) => ({
+        ...prev,
+        [field]: parseFloat(value.toString()) || 0,
+      }));
+    } else {
+      setNewItem((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
 
-    // Clear error when user types
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -156,7 +156,7 @@ export function AddItemDialog({ open, setOpen, onAdd }: AddItemDialogProps) {
       category: "Spirits",
       quantity: 0,
       unit: "Bottle",
-      unitPrice: "",
+      unitPrice: 0,
       barId: "1",
       supplierId: "1",
       minimumLevel: 5,

@@ -18,6 +18,9 @@ export const itemFormSchema = z.object({
     message: "Minimum level must be a positive number.",
   }),
   expirationDate: z.string().optional(),
+  unit: z.string().min(1, {
+    message: "Unit is required.",
+  }),
 });
 
 export type ItemFormValues = z.infer<typeof itemFormSchema>;
