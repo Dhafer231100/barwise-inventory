@@ -16,6 +16,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import SalesManagement from "./pages/SalesManagement";
+import Download from "./pages/Download";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/sales" element={<SalesManagement />} />
               <Route path="/users" element={<Users />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/download" element={<Download />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
