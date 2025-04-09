@@ -3,13 +3,13 @@ import React from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download as DownloadIcon, Windows, Apple, Linux } from "lucide-react";
+import { Download as DownloadIcon, Computer, Apple, Monitor } from "lucide-react";
 
 const Download = () => {
   const platforms = [
     {
       name: "Windows",
-      icon: <Windows className="h-6 w-6" />,
+      icon: <Computer className="h-6 w-6" />,
       link: "#", // Replace with actual download link when available
       description: "For Windows 10 and above (.exe)"
     },
@@ -21,7 +21,7 @@ const Download = () => {
     },
     {
       name: "Linux",
-      icon: <Linux className="h-6 w-6" />,
+      icon: <Monitor className="h-6 w-6" />,
       link: "#", // Replace with actual download link when available
       description: "For Ubuntu, Debian, etc. (.AppImage)"
     }
