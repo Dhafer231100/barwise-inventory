@@ -1,26 +1,27 @@
 
 import React from "react";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download as DownloadIcon, Windows, Apple, Linux } from "lucide-react";
 
 const Download = () => {
   const platforms = [
     {
       name: "Windows",
-      icon: "windows",
+      icon: <Windows className="h-6 w-6" />,
       link: "#", // Replace with actual download link when available
       description: "For Windows 10 and above (.exe)"
     },
     {
       name: "macOS",
-      icon: "apple",
+      icon: <Apple className="h-6 w-6" />,
       link: "#", // Replace with actual download link when available
       description: "For macOS 10.15 and above (.dmg)"
     },
     {
       name: "Linux",
-      icon: "linux",
+      icon: <Linux className="h-6 w-6" />,
       link: "#", // Replace with actual download link when available
       description: "For Ubuntu, Debian, etc. (.AppImage)"
     }
@@ -38,12 +39,16 @@ const Download = () => {
           {platforms.map((platform) => (
             <Card key={platform.name} className="flex flex-col">
               <CardHeader>
-                <CardTitle>{platform.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  {platform.icon}
+                  {platform.name}
+                </CardTitle>
                 <CardDescription>{platform.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow flex flex-col justify-end">
-                <Button className="w-full" asChild>
+                <Button className="w-full flex items-center gap-2" asChild>
                   <a href={platform.link} download>
+                    <DownloadIcon className="h-4 w-4" />
                     Download for {platform.name}
                   </a>
                 </Button>
