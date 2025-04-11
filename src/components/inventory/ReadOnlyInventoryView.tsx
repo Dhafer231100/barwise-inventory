@@ -73,7 +73,7 @@ export function ReadOnlyInventoryView() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              <InventoryLevels data={chartData} />
+              <InventoryLevels data={chartData} cardWrapper={false} />
             </div>
           </CardContent>
         </Card>
