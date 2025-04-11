@@ -50,6 +50,7 @@ export function InventoryManagerView() {
   } = useInventoryActions({
     items,
     setItems,
+    selectedItem, // Pass selectedItem here
     setSelectedItem,
     setShowEditDialog,
     setShowAddDialog,

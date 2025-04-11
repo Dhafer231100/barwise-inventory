@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface UseInventoryActionsProps {
   items: InventoryItem[];
   setItems: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
+  selectedItem: InventoryItem | null; // Added selectedItem to the interface
   setSelectedItem: React.Dispatch<React.SetStateAction<InventoryItem | null>>;
   setShowEditDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setShowAddDialog: React.Dispatch<React.SetStateAction<boolean>>;
@@ -16,6 +17,7 @@ interface UseInventoryActionsProps {
 export function useInventoryActions({
   items,
   setItems,
+  selectedItem, // Added selectedItem as parameter
   setSelectedItem,
   setShowEditDialog,
   setShowAddDialog,
