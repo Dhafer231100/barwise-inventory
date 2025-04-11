@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +14,7 @@ import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { mockInventoryItems } from "@/data/mockInventoryData";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { TransferItemDialog } from "@/components/inventory/TransferItemDialog";
+import { ReadOnlyInventoryView } from "@/components/inventory/ReadOnlyInventoryView";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Inventory = () => {
@@ -31,6 +31,7 @@ const Inventory = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [sortField, setSortField] = useState<"name" | "quantity" | "unitPrice">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const isInventoryStaff = user?.role === 'inventory_staff';
 
   // Load saved inventory items from localStorage on component mount
   useEffect(() => {
@@ -50,6 +51,23 @@ const Inventory = () => {
 
   if (!isAuthenticated && !loading) {
     return <Navigate to="/" replace />;
+  }
+
+  // If the user is inventory staff, show the read-only view
+  if (isInventoryStaff) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Inventory Levels</h2>
+            <p className="text-muted-foreground">
+              Monitor current inventory levels across all bars
+            </p>
+          </div>
+          <ReadOnlyInventoryView />
+        </div>
+      </Layout>
+    );
   }
 
   const filteredItems = items
