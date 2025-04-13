@@ -63,72 +63,89 @@ export function useInventoryActions({
     setShowTransferDialog(true);
   };
 
-  const handleSaveTransfer = (item: InventoryItem, targetBarId: string, quantity: number) => {
+  const handleSaveTransfer = (transferItems: InventoryItem[], targetBarId: string, quantities: Record<string, number>) => {
     if (!hasPermission(['manager'])) {
       toast.error("Only managers can transfer inventory items");
       return;
     }
     
     const updatedItems = [...items];
+    const transferRecords = [];
     
-    const sourceItemIndex = updatedItems.findIndex(i => i.id === item.id);
-    
-    if (sourceItemIndex === -1) {
-      toast.error("Source item not found");
-      return;
+    for (const itemToTransfer of transferItems) {
+      const quantity = quantities[itemToTransfer.id] || 0;
+      if (quantity <= 0) continue;
+      
+      const sourceItemIndex = updatedItems.findIndex(i => i.id === itemToTransfer.id);
+      
+      if (sourceItemIndex === -1) {
+        toast.error(`Source item ${itemToTransfer.name} not found`);
+        continue;
+      }
+      
+      const targetItemIndex = updatedItems.findIndex(i => 
+        i.name === itemToTransfer.name && 
+        i.category === itemToTransfer.category && 
+        i.barId === targetBarId &&
+        i.unit === itemToTransfer.unit
+      );
+      
+      // Update source item quantity
+      updatedItems[sourceItemIndex] = {
+        ...updatedItems[sourceItemIndex],
+        quantity: updatedItems[sourceItemIndex].quantity - quantity
+      };
+      
+      // Update target item or create new item
+      if (targetItemIndex >= 0) {
+        updatedItems[targetItemIndex] = {
+          ...updatedItems[targetItemIndex],
+          quantity: updatedItems[targetItemIndex].quantity + quantity
+        };
+      } else {
+        const newItemId = `${itemToTransfer.id}-${targetBarId}-${Date.now()}`;
+        const newItem: InventoryItem = {
+          ...itemToTransfer,
+          id: newItemId,
+          barId: targetBarId,
+          quantity: quantity
+        };
+        updatedItems.push(newItem);
+      }
+      
+      // Create a transfer record for this item
+      const transferId = `transfer-${itemToTransfer.id}-${Date.now()}`;
+      const transferRecord = {
+        id: transferId,
+        itemId: itemToTransfer.id,
+        itemName: itemToTransfer.name,
+        sourceBarId: itemToTransfer.barId,
+        targetBarId,
+        quantity,
+        unit: itemToTransfer.unit,
+        transferredBy: user?.name || 'Unknown',
+        date: new Date().toISOString()
+      };
+      
+      transferRecords.push(transferRecord);
     }
     
-    const targetItemIndex = updatedItems.findIndex(i => 
-      i.name === item.name && 
-      i.category === item.category && 
-      i.barId === targetBarId &&
-      i.unit === item.unit
-    );
-    
-    updatedItems[sourceItemIndex] = {
-      ...updatedItems[sourceItemIndex],
-      quantity: updatedItems[sourceItemIndex].quantity - quantity
-    };
-    
-    if (targetItemIndex >= 0) {
-      updatedItems[targetItemIndex] = {
-        ...updatedItems[targetItemIndex],
-        quantity: updatedItems[targetItemIndex].quantity + quantity
-      };
-    } else {
-      const newItemId = `${item.id}-${targetBarId}-${Date.now()}`;
-      const newItem: InventoryItem = {
-        ...item,
-        id: newItemId,
-        barId: targetBarId,
-        quantity: quantity
-      };
-      updatedItems.push(newItem);
-    }
-    
-    // Create a transfer record
-    const transferId = `transfer-${Date.now()}`;
-    const transferRecord = {
-      id: transferId,
-      itemId: item.id,
-      itemName: item.name,
-      sourceBarId: item.barId,
-      targetBarId,
-      quantity,
-      unit: item.unit,
-      transferredBy: user?.name || 'Unknown',
-      date: new Date().toISOString()
-    };
-    
-    // Save transfer record to localStorage
+    // Save all transfer records to localStorage
     const savedTransfers = localStorage.getItem('barTransferRecords') || '[]';
     const transfers = JSON.parse(savedTransfers);
-    transfers.push(transferRecord);
+    transfers.push(...transferRecords);
     localStorage.setItem('barTransferRecords', JSON.stringify(transfers));
     
     setItems(updatedItems);
     
-    toast.success(`Transferred ${quantity} ${item.unit}(s) of ${item.name} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Economa" : "Restaurant"}`);
+    const totalItemsTransferred = transferRecords.length;
+    if (totalItemsTransferred === 1) {
+      const record = transferRecords[0];
+      toast.success(`Transferred ${record.quantity} ${record.unit}(s) of ${record.itemName} to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Economa" : "Restaurant"}`);
+    } else {
+      toast.success(`Successfully transferred ${totalItemsTransferred} items to ${targetBarId === "1" ? "Main Bar" : targetBarId === "2" ? "Economa" : "Restaurant"}`);
+    }
+    
     setShowTransferDialog(false);
   };
 

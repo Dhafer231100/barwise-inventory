@@ -216,6 +216,7 @@ export function InventoryManagerView() {
         open={showTransferDialog}
         setOpen={setShowTransferDialog}
         item={selectedItem}
+        allItems={items}
         onTransfer={handleSaveTransfer}
       />
 

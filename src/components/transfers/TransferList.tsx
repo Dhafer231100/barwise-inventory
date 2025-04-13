@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, PackageIcon } from "lucide-react";
 
 interface TransferListProps {
   filterBarId?: string;
@@ -22,6 +22,7 @@ interface TransferListProps {
 
 export function TransferList({ filterBarId = "all", filterDirection = "all", limit }: TransferListProps) {
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
+  const [groupedByDate, setGroupedByDate] = useState<Record<string, TransferRecord[]>>({});
   
   useEffect(() => {
     const savedTransfers = localStorage.getItem('barTransferRecords') || '[]';
@@ -43,6 +44,19 @@ export function TransferList({ filterBarId = "all", filterDirection = "all", lim
     // Sort by date (newest first)
     transfersData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
+    // Group by date and time (transfers done together)
+    const grouped: Record<string, TransferRecord[]> = {};
+    transfersData.forEach(transfer => {
+      // Use the first 16 chars of ISO date (YYYY-MM-DDTHH:MM) to group transfers done at the same time
+      const dateKey = transfer.date.substring(0, 16);
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(transfer);
+    });
+    
+    setGroupedByDate(grouped);
+    
     // Apply limit if provided
     if (limit && limit > 0) {
       transfersData = transfersData.slice(0, limit);
@@ -59,6 +73,63 @@ export function TransferList({ filterBarId = "all", filterDirection = "all", lim
     );
   }
 
+  // Function to show grouped or individual transfers
+  const renderTransfers = () => {
+    // Get date keys and sort by most recent
+    const dateKeys = Object.keys(groupedByDate).sort((a, b) => 
+      new Date(b).getTime() - new Date(a).getTime()
+    );
+    
+    // Apply limit if needed
+    const limitedKeys = limit ? dateKeys.slice(0, limit) : dateKeys;
+    
+    return limitedKeys.map(dateKey => {
+      const transferGroup = groupedByDate[dateKey];
+      const firstTransfer = transferGroup[0];
+      const date = new Date(firstTransfer.date);
+      
+      return (
+        <TableRow key={dateKey} className={transferGroup.length > 1 ? "bg-muted/20" : ""}>
+          <TableCell className="font-medium">
+            {transferGroup.length > 1 ? (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="mr-2">
+                  {transferGroup.length} items
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {transferGroup.map(t => t.itemName).join(", ")}
+                </span>
+              </div>
+            ) : (
+              firstTransfer.itemName
+            )}
+          </TableCell>
+          <TableCell>{barNames[firstTransfer.sourceBarId]}</TableCell>
+          <TableCell className="flex items-center gap-1">
+            <ArrowRightIcon className="h-3 w-3" />
+            {barNames[firstTransfer.targetBarId]}
+          </TableCell>
+          <TableCell>
+            {transferGroup.length > 1 ? (
+              <span>Multiple items</span>
+            ) : (
+              <span>
+                {firstTransfer.quantity} {firstTransfer.unit}
+                {firstTransfer.quantity > 1 ? 's' : ''}
+              </span>
+            )}
+          </TableCell>
+          <TableCell>{firstTransfer.transferredBy}</TableCell>
+          <TableCell>
+            <Badge variant="outline">
+              {formatDistanceToNow(date, { addSuffix: true })}
+            </Badge>
+          </TableCell>
+        </TableRow>
+      );
+    });
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -73,25 +144,7 @@ export function TransferList({ filterBarId = "all", filterDirection = "all", lim
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transfers.map((transfer) => (
-            <TableRow key={transfer.id}>
-              <TableCell className="font-medium">{transfer.itemName}</TableCell>
-              <TableCell>{barNames[transfer.sourceBarId]}</TableCell>
-              <TableCell className="flex items-center gap-1">
-                <ArrowRightIcon className="h-3 w-3" />
-                {barNames[transfer.targetBarId]}
-              </TableCell>
-              <TableCell>
-                {transfer.quantity} {transfer.unit}{transfer.quantity > 1 ? 's' : ''}
-              </TableCell>
-              <TableCell>{transfer.transferredBy}</TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {formatDistanceToNow(new Date(transfer.date), { addSuffix: true })}
-                </Badge>
-              </TableCell>
-            </TableRow>
-          ))}
+          {renderTransfers()}
         </TableBody>
       </Table>
     </div>
