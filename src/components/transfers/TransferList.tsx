@@ -92,13 +92,22 @@ export function TransferList({ filterBarId = "all", filterDirection = "all", lim
         <TableRow key={dateKey} className={transferGroup.length > 1 ? "bg-muted/20" : ""}>
           <TableCell className="font-medium">
             {transferGroup.length > 1 ? (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="mr-2">
-                  {transferGroup.length} items
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {transferGroup.map(t => t.itemName).join(", ")}
-                </span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="mr-1">
+                    {transferGroup.length} items
+                  </Badge>
+                  <span className="text-sm font-medium">Batch Transfer</span>
+                </div>
+                <div className="text-xs text-muted-foreground max-h-20 overflow-y-auto">
+                  {transferGroup.map((t, idx) => (
+                    <div key={t.id} className="flex items-center gap-1 mt-1">
+                      <span>{t.itemName}</span>
+                      <span className="text-muted-foreground">({t.quantity} {t.unit}{t.quantity > 1 ? 's' : ''})</span>
+                      {idx < transferGroup.length - 1 && <span>,</span>}
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               firstTransfer.itemName
@@ -111,7 +120,7 @@ export function TransferList({ filterBarId = "all", filterDirection = "all", lim
           </TableCell>
           <TableCell>
             {transferGroup.length > 1 ? (
-              <span>Multiple items</span>
+              <span>Multiple quantities</span>
             ) : (
               <span>
                 {firstTransfer.quantity} {firstTransfer.unit}

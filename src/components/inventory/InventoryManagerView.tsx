@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { InventoryItem } from "@/utils/types";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MoveHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { InventoryFilters } from "@/components/inventory/InventoryFilters";
@@ -46,11 +46,12 @@ export function InventoryManagerView() {
     confirmDelete,
     handleDeleteItem,
     handleAddItem,
-    handleAddNewItem
+    handleAddNewItem,
+    handleBulkTransfer
   } = useInventoryActions({
     items,
     setItems,
-    selectedItem, // Pass selectedItem here
+    selectedItem,
     setSelectedItem,
     setShowEditDialog,
     setShowAddDialog,
@@ -157,6 +158,15 @@ export function InventoryManagerView() {
               onClick={handleResetInventory}
             >
               <Trash2 className="h-4 w-4" /> Reset All
+            </Button>
+          )}
+          {hasPermission(['manager']) && (
+            <Button 
+              className="flex items-center gap-2" 
+              onClick={handleBulkTransfer}
+              variant="secondary"
+            >
+              <MoveHorizontal className="h-4 w-4" /> Transfer Items
             </Button>
           )}
           <Button 

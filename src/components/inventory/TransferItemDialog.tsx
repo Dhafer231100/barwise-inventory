@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { barNames } from "@/data/mockInventoryData";
+import { Search, PackageCheck, ArrowRightLeft } from "lucide-react";
 
 interface TransferItemDialogProps {
   open: boolean;
@@ -46,16 +47,21 @@ export function TransferItemDialog({
   const [error, setError] = useState<string>("");
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
   const [multiTransfer, setMultiTransfer] = useState<boolean>(false);
+  const [itemFilter, setItemFilter] = useState<string>("");
+  const [sourceBarFilter, setSourceBarFilter] = useState<string>("");
 
-  // Reset form when item changes
+  // Reset form when item changes or dialog opens
   useEffect(() => {
-    if (item) {
+    if (item && open) {
       // Reset state for new dialog open
       const newQuantities: Record<string, number> = {};
       newQuantities[item.id] = 1;
       setQuantities(newQuantities);
       setSelectedItems([item]);
-      setMultiTransfer(false);
+      // Default to multi-transfer mode for better UX
+      setMultiTransfer(true);
+      setItemFilter("");
+      setSourceBarFilter(item.barId);
       
       // Get all bars except the current one
       const allBars = Object.entries(barNames).map(([id, name]) => ({ id, name }));
@@ -71,13 +77,21 @@ export function TransferItemDialog({
       
       setError("");
     }
-  }, [item]);
+  }, [item, open]);
 
   // Handle quantity change
   const handleQuantityChange = (itemId: string, value: number) => {
     setQuantities(prev => ({
       ...prev,
       [itemId]: value
+    }));
+  };
+
+  // Handle quick set to max quantity
+  const handleSetMaxQuantity = (itemId: string, maxQuantity: number) => {
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: maxQuantity
     }));
   };
 
@@ -116,15 +130,41 @@ export function TransferItemDialog({
     }
   }, [open, setOpen, hasPermission]);
 
-  // Get items from the same bar as the initial item
-  const getItemsFromSameBar = () => {
-    if (!item) return [];
-    return allItems.filter(i => i.barId === item.barId && i.quantity > 0);
+  // Update available bars when source bar filter changes
+  useEffect(() => {
+    if (sourceBarFilter) {
+      const allBars = Object.entries(barNames).map(([id, name]) => ({ id, name }));
+      const filteredBars = allBars.filter(bar => bar.id !== sourceBarFilter);
+      setAvailableBars(filteredBars);
+      
+      // Set default target bar
+      if (filteredBars.length > 0 && (!targetBarId || targetBarId === sourceBarFilter)) {
+        setTargetBarId(filteredBars[0].id);
+      }
+    }
+  }, [sourceBarFilter, targetBarId]);
+
+  // Get items from the selected source bar
+  const getFilteredItems = () => {
+    if (!sourceBarFilter) return [];
+    
+    const barItems = allItems.filter(i => 
+      i.barId === sourceBarFilter && 
+      i.quantity > 0 &&
+      (itemFilter === "" || i.name.toLowerCase().includes(itemFilter.toLowerCase()))
+    );
+    
+    return barItems;
   };
 
   const validateTransfer = () => {
     if (!targetBarId) {
       setError("Please select a target bar");
+      return false;
+    }
+    
+    if (selectedItems.length === 0) {
+      setError("Please select at least one item to transfer");
       return false;
     }
     
@@ -146,12 +186,41 @@ export function TransferItemDialog({
     return true;
   };
 
-  const handleSubmit = () => {
-    if (selectedItems.length === 0) {
-      setError("Please select at least one item to transfer");
-      return;
-    }
+  const handleSelectAll = () => {
+    const filteredItems = getFilteredItems();
+    const newSelectedItems = [...selectedItems];
+    const newQuantities = {...quantities};
     
+    filteredItems.forEach(item => {
+      // Only add if not already selected
+      if (!selectedItems.some(i => i.id === item.id)) {
+        newSelectedItems.push(item);
+        newQuantities[item.id] = 1; // Default quantity
+      }
+    });
+    
+    setSelectedItems(newSelectedItems);
+    setQuantities(newQuantities);
+  };
+
+  const handleSelectNone = () => {
+    const filteredItems = getFilteredItems();
+    
+    // Remove only filtered items from selection
+    const filteredItemIds = new Set(filteredItems.map(item => item.id));
+    
+    const newSelectedItems = selectedItems.filter(item => !filteredItemIds.has(item.id));
+    const newQuantities = {...quantities};
+    
+    filteredItems.forEach(item => {
+      delete newQuantities[item.id];
+    });
+    
+    setSelectedItems(newSelectedItems);
+    setQuantities(newQuantities);
+  };
+
+  const handleSubmit = () => {
     if (!hasPermission(['manager'])) {
       toast.error("Only managers can transfer inventory items");
       setOpen(false);
@@ -170,63 +239,40 @@ export function TransferItemDialog({
     setOpen(false);
   };
 
-  if (!item) return null;
+  if (!open) return null;
 
-  const itemsFromSameBar = getItemsFromSameBar();
+  const filteredItems = getFilteredItems();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Transfer Inventory</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <ArrowRightLeft className="h-5 w-5" />
+            Transfer Inventory Items
+          </DialogTitle>
           <DialogDescription>
-            Transfer items to another bar location.
+            Move inventory items between bar locations.
           </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="multiTransfer" 
-              checked={multiTransfer}
-              onCheckedChange={(checked) => {
-                setMultiTransfer(!!checked);
-                if (!checked) {
-                  // Reset to just the initial item
-                  setSelectedItems([item]);
-                  const newQuantities: Record<string, number> = {};
-                  newQuantities[item.id] = quantities[item.id] || 1;
-                  setQuantities(newQuantities);
-                }
-              }}
-            />
-            <Label htmlFor="multiTransfer">Transfer multiple items</Label>
+          {/* Source Bar Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="sourceBar">Source Bar:</Label>
+            <Select value={sourceBarFilter} onValueChange={setSourceBarFilter}>
+              <SelectTrigger id="sourceBar">
+                <SelectValue placeholder="Select source bar" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(barNames).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          {!multiTransfer ? (
-            <div>
-              <p><strong>Item:</strong> {item.name}</p>
-              <p><strong>Current Location:</strong> {barNames[item.barId]}</p>
-              <p><strong>Available Quantity:</strong> {item.quantity} {item.unit}(s)</p>
-            </div>
-          ) : (
-            <div className="max-h-64 overflow-y-auto border rounded-md p-2">
-              <p className="font-medium mb-2">Select items to transfer:</p>
-              {itemsFromSameBar.map((inventoryItem) => (
-                <div key={inventoryItem.id} className="flex items-center space-x-2 py-1 border-b last:border-b-0">
-                  <Checkbox 
-                    id={`item-${inventoryItem.id}`}
-                    checked={selectedItems.some(i => i.id === inventoryItem.id)}
-                    onCheckedChange={() => toggleItemSelection(inventoryItem)}
-                  />
-                  <Label htmlFor={`item-${inventoryItem.id}`} className="flex-grow">
-                    {inventoryItem.name} ({inventoryItem.quantity} {inventoryItem.unit}{inventoryItem.quantity > 1 ? 's' : ''})
-                  </Label>
-                </div>
-              ))}
-            </div>
-          )}
-          
+          {/* Target Bar Selection */}
           <div className="space-y-2">
             <Label htmlFor="targetBar">Transfer to:</Label>
             <Select 
@@ -235,7 +281,7 @@ export function TransferItemDialog({
               disabled={availableBars.length === 0}
             >
               <SelectTrigger id="targetBar">
-                <SelectValue placeholder="Select a bar" />
+                <SelectValue placeholder="Select destination bar" />
               </SelectTrigger>
               <SelectContent>
                 {availableBars.map((bar) => (
@@ -250,27 +296,103 @@ export function TransferItemDialog({
             )}
           </div>
           
-          <div className="space-y-2">
-            <Label>Quantity to transfer:</Label>
-            {selectedItems.map(selectedItem => (
-              <div key={selectedItem.id} className="flex items-center space-x-2">
-                {multiTransfer && <p className="text-sm w-1/3">{selectedItem.name}:</p>}
-                <Input
-                  id={`quantity-${selectedItem.id}`}
-                  type="number"
-                  min="1"
-                  max={selectedItem.quantity}
-                  value={quantities[selectedItem.id] || 1}
-                  onChange={(e) => handleQuantityChange(selectedItem.id, Number(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-sm w-1/6">{selectedItem.unit}{quantities[selectedItem.id] !== 1 ? 's' : ''}</span>
+          {/* Item Selection Section */}
+          <div className="space-y-2 border rounded-md p-3">
+            <div className="flex items-center justify-between mb-2">
+              <Label>Select Items to Transfer:</Label>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSelectAll}
+                >
+                  Select All
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSelectNone}
+                >
+                  Clear
+                </Button>
               </div>
-            ))}
+            </div>
+            
+            {/* Search filter */}
+            <div className="relative mb-3">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search items..."
+                value={itemFilter}
+                onChange={(e) => setItemFilter(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            
+            <div className="max-h-64 overflow-y-auto border rounded-md p-2">
+              {filteredItems.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  No items found. {!sourceBarFilter && "Please select a source bar."}
+                </p>
+              ) : (
+                filteredItems.map((inventoryItem) => (
+                  <div key={inventoryItem.id} className="flex items-center space-x-2 py-2 border-b last:border-b-0">
+                    <Checkbox 
+                      id={`item-${inventoryItem.id}`}
+                      checked={selectedItems.some(i => i.id === inventoryItem.id)}
+                      onCheckedChange={() => toggleItemSelection(inventoryItem)}
+                    />
+                    <Label htmlFor={`item-${inventoryItem.id}`} className="flex-grow cursor-pointer">
+                      {inventoryItem.name} 
+                      <span className="text-sm text-muted-foreground ml-1">
+                        ({inventoryItem.quantity} {inventoryItem.unit}{inventoryItem.quantity > 1 ? 's' : ''})
+                      </span>
+                    </Label>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
           
+          {/* Quantity Selection */}
+          {selectedItems.length > 0 && (
+            <div className="space-y-2 border rounded-md p-3">
+              <Label>Set Quantities:</Label>
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {selectedItems.map(selectedItem => {
+                  const maxQty = selectedItem.quantity;
+                  return (
+                    <div key={selectedItem.id} className="flex items-center space-x-2 py-1">
+                      <p className="text-sm w-1/3 truncate" title={selectedItem.name}>{selectedItem.name}:</p>
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          id={`quantity-${selectedItem.id}`}
+                          type="number"
+                          min="1"
+                          max={maxQty}
+                          value={quantities[selectedItem.id] || 1}
+                          onChange={(e) => handleQuantityChange(selectedItem.id, Number(e.target.value))}
+                          className="w-full"
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="whitespace-nowrap text-xs"
+                          onClick={() => handleSetMaxQuantity(selectedItem.id, maxQty)}
+                        >
+                          Max: {maxQty}
+                        </Button>
+                      </div>
+                      <span className="text-sm w-12">{selectedItem.unit}{quantities[selectedItem.id] !== 1 ? 's' : ''}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
           {error && (
-            <p className="text-destructive text-sm">{error}</p>
+            <p className="text-destructive text-sm bg-destructive/10 p-2 rounded-md">{error}</p>
           )}
         </div>
         
@@ -278,8 +400,13 @@ export function TransferItemDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={availableBars.length === 0 || selectedItems.length === 0}>
-            Transfer
+          <Button 
+            onClick={handleSubmit} 
+            disabled={availableBars.length === 0 || selectedItems.length === 0}
+            className="gap-2"
+          >
+            <PackageCheck className="h-4 w-4" />
+            Transfer {selectedItems.length > 1 ? `(${selectedItems.length} items)` : ''}
           </Button>
         </DialogFooter>
       </DialogContent>

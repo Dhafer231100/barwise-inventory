@@ -6,7 +6,7 @@ import { toast } from "sonner";
 interface UseInventoryActionsProps {
   items: InventoryItem[];
   setItems: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
-  selectedItem: InventoryItem | null; // Added selectedItem to the interface
+  selectedItem: InventoryItem | null;
   setSelectedItem: React.Dispatch<React.SetStateAction<InventoryItem | null>>;
   setShowEditDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setShowAddDialog: React.Dispatch<React.SetStateAction<boolean>>;
@@ -17,7 +17,7 @@ interface UseInventoryActionsProps {
 export function useInventoryActions({
   items,
   setItems,
-  selectedItem, // Added selectedItem as parameter
+  selectedItem,
   setSelectedItem,
   setShowEditDialog,
   setShowAddDialog,
@@ -60,6 +60,25 @@ export function useInventoryActions({
       return;
     }
     setSelectedItem(item);
+    setShowTransferDialog(true);
+  };
+  
+  // New function for bulk transfers
+  const handleBulkTransfer = () => {
+    if (!hasPermission(['manager'])) {
+      toast.error("Only managers can transfer inventory items");
+      return;
+    }
+    
+    // Find the first item with quantity > 0 to use as the initial item
+    const firstValidItem = items.find(item => item.quantity > 0);
+    
+    if (!firstValidItem) {
+      toast.error("No items available for transfer");
+      return;
+    }
+    
+    setSelectedItem(firstValidItem);
     setShowTransferDialog(true);
   };
 
@@ -206,6 +225,7 @@ export function useInventoryActions({
     handleEditItem,
     handleSaveItem,
     handleTransferItem,
+    handleBulkTransfer,
     handleSaveTransfer,
     confirmDelete,
     handleDeleteItem,
